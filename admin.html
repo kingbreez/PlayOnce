@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayOnce Admin</title>
+<script>
+// Guard — if somehow loaded inside a frame or wrong context, break out
+if (window.self !== window.top) { window.top.location = window.location.href; }
+// Ensure we are on the /admin.html path
+if (!window.location.pathname.includes('admin')) {
+  window.location.replace('/admin.html');
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#000;--white:#fff;--green:#00FF66;--red:#FF4444;--amber:#FFB800;--gray:#555;--border:#1a1a1a;--card:#080808;--font:'DM Sans',sans-serif}
+body{background:var(--black);color:var(--white);font-family:var(--font);min-height:100vh;display:flex;flex-direction:column}
+.login-wrap{max-width:420px;margin:80px auto;padding:0 24px;width:100%}
+.login-logo{font-size:22px;font-weight:800;margin-bottom:4px}
+.login-logo span{color:var(--green)}
+.login-sub{font-size:13px;color:var(--gray);margin-bottom:28px}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--gray)}
+.field input{background:#060606;border:1px solid var(--border);color:var(--white);font-family:var(--font);font-size:15px;padding:13px;outline:none}
+.field input:focus{border-color:#444}
+.field input::placeholder{color:#2a2a2a}
+.btn-fill{width:100%;padding:15px;background:var(--green);color:var(--black);border:none;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
+.btn-fill:hover{background:#00e85c}
+.error-msg{font-size:12px;color:var(--red);margin-top:8px}
+.shell{display:flex;flex:1;height:100vh;overflow:hidden}
+.sidebar{width:220px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px 20px 16px;font-size:16px;font-weight:800;border-bottom:1px solid var(--border)}
+.sidebar-logo span{color:var(--green)}
+.sidebar-badge{font-size:9px;font-weight:700;color:var(--amber);letter-spacing:.1em;display:block;margin-top:2px}
+.nav{flex:1;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;font-size:13px;font-weight:500;color:var(--gray);cursor:pointer;transition:color 120ms,background 120ms;border:none;background:none;font-family:var(--font);width:100%;text-align:left}
+.nav-item:hover{color:var(--white);background:#0a0a0a}
+.nav-item.active{color:var(--white);background:#0d0d0d;border-left:2px solid var(--green)}
+.nav-icon{font-size:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:var(--white);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;display:none}
+.nav-badge.show{display:block}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--gray);font-family:var(--font);font-size:12px;font-weight:600;padding:8px 14px;cursor:pointer;width:100%}
+.btn-logout:hover{border-color:#444;color:var(--white)}
+.main{flex:1;overflow-y:auto}
+.page{display:none;padding:28px 32px;max-width:1100px}
+.page.active{display:block}
+.page-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--gray);margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);padding:18px}
+.stat-num{font-size:30px;font-weight:800;line-height:1}
+.stat-lbl{font-size:11px;color:var(--gray);letter-spacing:.08em;margin-top:5px}
+.stat-num.green{color:var(--green)}
+.stat-num.amber{color:var(--amber)}
+.stat-num.red{color:var(--red)}
+.section-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--gray);margin-bottom:10px;margin-top:24px}
+.card{background:var(--card);border:1px solid var(--border);margin-bottom:10px}
+.card.flagged{border-color:rgba(255,68,68,.4)}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:14px;font-weight:700}
+.card-meta{font-size:11px;color:var(--gray);margin-top:2px}
+.card-body{padding:14px 18px}
+.card-actions{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-approve{background:none;border:1px solid var(--green);color:var(--green);font-family:var(--font);font-size:12px;font-weight:700;padding:9px 18px;cursor:pointer;transition:background 120ms,color 120ms}
+.btn-approve:hover{background:var(--green);color:var(--black)}
+.btn-deny{background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font);font-size:12px;font-weight:700;padding:9px 18px;cursor:pointer}
+.btn-deny:hover{background:var(--red);color:var(--white)}
+.btn-sm{background:none;border:1px solid var(--border);color:var(--gray);font-family:var(--font);font-size:11px;font-weight:600;padding:6px 12px;cursor:pointer}
+.btn-sm:hover{border-color:#444;color:var(--white)}
+.btn-action{background:var(--green);color:var(--black);border:none;font-family:var(--font);font-size:12px;font-weight:700;padding:9px 18px;cursor:pointer}
+.btn-action:hover{background:#00e85c}
+.pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:3px 10px;border:1px solid}
+.pill-copyright{color:var(--red);border-color:var(--red);background:rgba(255,68,68,.08)}
+.pill-green{color:var(--green);border-color:var(--green);background:rgba(0,255,102,.06)}
+.pill-amber{color:var(--amber);border-color:var(--amber);background:rgba(255,184,0,.06)}
+.pill-gray{color:var(--gray);border-color:var(--border)}
+.pill-red{color:var(--white);border-color:var(--red);background:var(--red)}
+.play-bar{font-size:11px;padding:6px 10px;border-left:2px solid;margin:8px 0}
+.play-bar.fail{border-color:var(--red);color:var(--red)}
+.play-bar.partial{border-color:var(--amber);color:var(--amber)}
+.play-bar.ok{border-color:var(--green);color:var(--green)}
+.creator-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.creator-row:last-child{border-bottom:none}
+.creator-avatar{width:38px;height:38px;border-radius:50%;background:#111;border:1px solid #222;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0;overflow:hidden;background-size:cover;background-position:center}
+.creator-info{flex:1;min-width:0}
+.creator-name{font-size:14px;font-weight:700}
+.creator-sub{font-size:11px;color:var(--gray);margin-top:2px}
+.strikes-dots{display:flex;gap:4px;margin-top:4px}
+.strike-dot{width:8px;height:8px;border-radius:50%}
+.strike-dot.hit{background:var(--red)}
+.strike-dot.empty{background:#222;border:1px solid #333}
+.creator-actions{display:flex;gap:6px;flex-shrink:0}
+.search-bar{background:var(--card);border:1px solid var(--border);color:var(--white);font-family:var(--font);font-size:14px;padding:11px 14px;outline:none;width:100%;margin-bottom:16px}
+.search-bar:focus{border-color:#444}
+.search-bar::placeholder{color:#2a2a2a}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--black);padding:11px 22px;font-weight:700;font-size:13px;opacity:0;transition:opacity 200ms;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.empty{text-align:center;padding:48px 0;color:var(--gray)}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:.25}
+.loading{text-align:center;padding:40px;color:var(--gray);font-size:13px}
+.inline-err{font-size:11px;color:var(--red);padding:6px 18px;border-top:1px solid var(--border)}
+.drop-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border)}
+.drop-row:last-child{border-bottom:none}
+.drop-info{flex:1;min-width:0}
+.drop-title-t{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drop-meta-t{font-size:11px;color:var(--gray);margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.bar-label{font-size:12px;color:var(--gray);width:220px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:6px;background:#111}
+.bar-fill{height:100%;background:var(--green);transition:width 400ms}
+.bar-count{font-size:12px;font-weight:700;color:var(--white);width:30px;text-align:right}
+@media(max-width:700px){.sidebar{display:none}.stats-grid{grid-template-columns:1fr 1fr}.page{padding:20px 16px}}
+</style>
+</head>
+<body>
+
+<div id="login-section">
+  <div class="login-wrap">
+    <div class="login-logo">Play<span>Once</span></div>
+    <div class="login-sub">Admin Dashboard — sign in with your secret key.</div>
+    <div class="field"><label>ADMIN SECRET KEY</label><input type="password" id="admin-key" placeholder="Your ADMIN_SECRET" onkeydown="if(event.key==='Enter')login()"></div>
+    <div class="field"><label>API URL</label><input type="text" id="api-url" value="https://ek96lj4uec.execute-api.eu-west-1.amazonaws.com/prod"></div>
+    <button class="btn-fill" onclick="login()">Sign In</button>
+    <div class="error-msg" id="login-err"></div>
+  </div>
+</div>
+
+<div class="shell" id="shell" style="display:none">
+  <div class="sidebar">
+    <div class="sidebar-logo">Play<span>Once</span><span class="sidebar-badge">ADMIN</span></div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="nav('overview')"><span class="nav-icon">📊</span> Overview</button>
+      
+      <button class="nav-item" onclick="nav('copyright')"><span class="nav-icon">⚠️</span> Copyright Tools</button>
+      <button class="nav-item" onclick="nav('creators')"><span class="nav-icon">👤</span> Creators & Strikes</button>
+      <button class="nav-item" onclick="nav('analytics')"><span class="nav-icon">📈</span> Analytics</button>
+      <button class="nav-item" onclick="nav('tickets')"><span class="nav-icon">🎫</span> Support Tickets <span class="nav-badge" id="nav-badge-tickets"></span></button>
+    </nav>
+    <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+  </div>
+  <main class="main">
+
+    <div class="page active" id="page-overview">
+      <div class="page-title">Overview</div>
+      <div class="page-sub" id="overview-updated">Loading...</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num green" id="ov-revenue">—</div><div class="stat-lbl">TOTAL REVENUE</div></div>
+        <div class="stat-card"><div class="stat-num" id="ov-views">—</div><div class="stat-lbl">PAID VIEWS</div></div>
+        <div class="stat-card"><div class="stat-num amber" id="ov-pending">—</div><div class="stat-lbl">PENDING PAYOUTS</div></div>
+        <div class="stat-card"><div class="stat-num" id="ov-creators">—</div><div class="stat-lbl">CREATORS</div></div>
+        <div class="stat-card"><div class="stat-num" id="ov-drops">—</div><div class="stat-lbl">TOTAL DROPS</div></div>
+        <div class="stat-card"><div class="stat-num amber" id="ov-refunds">—</div><div class="stat-lbl">TOTAL REFUNDS</div></div>
+        <div class="stat-card"><div class="stat-num red" id="ov-banned">—</div><div class="stat-lbl">BANNED ACCOUNTS</div></div>
+        <div class="stat-card"><div class="stat-num amber" id="ov-frozen">—</div><div class="stat-lbl">FROZEN PAYOUTS</div></div>
+      </div>
+      <div class="section-lbl">TOP REFUND REASONS</div>
+      <div id="ov-reasons"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="page" id="page-refunds">
+      <div class="page-title">Refunds</div>
+      <div class="page-sub">All sales are final — no refund queue.</div>
+      <div style="padding:40px;text-align:center;color:var(--gray);font-size:14px;line-height:1.7">
+        PlayOnce has a no-refund policy.<br>
+        For genuine technical issues, creators and viewers contact <strong style="color:var(--white)">support@playonce.app</strong>.<br><br>
+        Use Support Tickets to see and respond to all incoming issues.
+      </div>
+    </div>
+
+    <div class="page" id="page-copyright">
+      <div class="page-title">Copyright Tools</div>
+      <div class="page-sub">Viewer claims · manual flags · restore cleared content.</div>
+      <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center">
+        <button class="btn-action" onclick="runCopyrightReview()" style="background:none;border:1px solid var(--amber);color:var(--amber)">▶ Run Auto-Restore Now</button>
+        <span style="font-size:12px;color:#444">Restores drops where 6h proof deadline has passed</span>
+      </div>
+
+      <div class="section-lbl" style="display:flex;justify-content:space-between;align-items:center">
+        VIEWER COPYRIGHT CLAIMS
+        <button class="btn-sm" onclick="loadCopyrightClaims()" style="font-size:11px;padding:4px 10px">↻ Refresh</button>
+      </div>
+      <div id="copyright-claims-list" style="margin-bottom:28px"><div class="loading">Loading...</div></div>
+
+      <div style="background:#080808;border:1px solid rgba(255,184,0,0.2);padding:14px 16px;margin-bottom:24px;font-size:13px;color:var(--gray);line-height:1.6">
+        💡 To manually flag a drop (e.g. from a DMCA email), look up the creator below.
+      </div>
+
+      <div class="section-lbl">LOOK UP CREATOR DROPS</div>
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <input type="text" class="search-bar" id="cr-username" placeholder="@creator username" style="margin:0" onkeydown="if(event.key==='Enter')loadCreatorDrops()">
+        <button class="btn-action" onclick="loadCreatorDrops()">Load Drops</button>
+      </div>
+      <div id="cr-drops-wrap"></div>
+
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+        <div class="section-lbl">🧪 TEST TOOL — EXPIRE A DROP (sets uploadedAt to 4 days ago)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:4px">
+          <input type="text" id="test-expire-username" placeholder="@username" class="search-bar" style="margin:0">
+          <input type="text" id="test-expire-dropid" placeholder="Drop ID" class="search-bar" style="margin:0">
+          <button class="btn-action" onclick="testExpireDrop()">Expire Now</button>
+        </div>
+        <div style="font-size:11px;color:#333;margin-top:6px">After expiring, refresh the vault to confirm the drop vanishes.</div>
+      </div>
+    </div>
+
+    <div class="page" id="page-creators">
+      <div class="page-title">Creators &amp; Strikes</div>
+      <div class="page-sub">Track violations · warn · freeze payouts · ban accounts.</div>
+      <input type="text" class="search-bar" id="creator-search" placeholder="Search by username or email..." oninput="filterCreators(this.value)">
+      <div id="creator-list"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="page" id="page-tickets">
+      <div class="page-title">Support Tickets</div>
+      <div class="page-sub">Every problem report from creators and viewers lands here.</div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-num amber" id="tk-open">—</div><div class="stat-lbl">OPEN</div></div>
+        <div class="stat-card"><div class="stat-num" id="tk-total">—</div><div class="stat-lbl">TOTAL</div></div>
+        <div class="stat-card"><div class="stat-num green" id="tk-resolved">—</div><div class="stat-lbl">RESOLVED</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn-sm" onclick="loadTickets('open')" id="tk-tab-open" style="border-color:var(--green);color:var(--green)">Open</button>
+        <button class="btn-sm" onclick="loadTickets('resolved')" id="tk-tab-resolved">Resolved</button>
+        <button class="btn-sm" onclick="loadTickets('all')" id="tk-tab-all">All</button>
+        <button class="btn-sm" onclick="loadTickets(currentTicketFilter)" style="margin-left:auto">↺ Refresh</button>
+      </div>
+      <div id="ticket-list"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="page" id="page-analytics">
+      <div class="page-title">Analytics</div>
+      <div class="page-sub">Platform-wide metrics and patterns.</div>
+      <div id="analytics-content"><div class="loading">Loading...</div></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API=()=>document.getElementById('api-url').value.trim().replace(/\/$/,'');
+let KEY='', CRON_KEY='', _allCreators=[];
+
+function showToast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#FF4444':'#00FF66';t.style.color=err?'#fff':'#000';t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
+
+async function apiFetch(path,opts={}){
+  const url=API()+path;
+  console.log('[admin]',(opts.method||'GET'),url);
+  const res=await fetch(url,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});
+  const text=await res.text();
+  console.log('[admin] response',res.status,text.slice(0,120));
+  try{const data=JSON.parse(text);if(data.error)console.warn('[admin] API error:',data.error);return data;}
+  catch(e){throw new Error('Bad response ('+res.status+'): '+text.slice(0,80));}
+}
+
+async function login(){
+  const key=document.getElementById('admin-key').value.trim();
+  const errEl=document.getElementById('login-err'); errEl.textContent='';
+  if(!key){errEl.textContent='Enter your admin key';return;}
+  const btn=document.querySelector('#login-section .btn-fill');
+  btn.textContent='Checking...'; btn.disabled=true;
+  try{
+    // Use ping endpoint for fast, clear auth check
+    const ping=await apiFetch('/admin/ping?key='+encodeURIComponent(key));
+    if(ping.error)throw new Error(ping.error);
+    KEY=key; CRON_KEY=key; // use same key for cron triggers from admin
+    document.getElementById('login-section').style.display='none';
+    document.getElementById('shell').style.display='flex';
+    loadAll();
+  }catch(e){
+    const msg=e.message==='Failed to fetch'?'Cannot reach API — check the URL above':e.message||'Login failed';
+    errEl.textContent=msg;
+    KEY='';
+  }finally{btn.textContent='Sign In';btn.disabled=false;}
+}
+
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  // Find nav button by page name safely — don't rely on event.currentTarget
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    const txt=n.textContent.toLowerCase();
+    if(page==='overview'&&txt.includes('overview'))n.classList.add('active');
+    else if(page==='refunds'&&txt.includes('refund'))n.classList.add('active');
+    else if(page==='copyright'&&txt.includes('copyright'))n.classList.add('active');
+    else if(page==='creators'&&txt.includes('creator'))n.classList.add('active');
+    else if(page==='analytics'&&txt.includes('analytics'))n.classList.add('active');
+  });
+  if(page==='creators')loadCreators();
+  else if(page==='analytics')loadAnalytics();
+  else if(page==='tickets')loadTickets('open');
+  else if(page==='overview')loadOverview();
+  else if(page==='copyright')loadCopyrightClaims();
+}
+
+function loadAll(){loadOverview();loadTicketsBadge();}
+
+async function loadTicketsBadge() {
+  try {
+    const data = await apiFetch('/admin/tickets?key=' + encodeURIComponent(KEY) + '&status=open');
+    if (data.open > 0) {
+      const badge = document.getElementById('nav-badge-tickets');
+      badge.textContent = data.open; badge.classList.add('show');
+      // Update overview stat if present
+      const el = document.getElementById('tk-open'); if (el) el.textContent = data.open;
+    }
+  } catch(e) {}
+}
+
+async function loadOverview(){
+  try{
+    const[analytics,queue]=await Promise.all([
+      apiFetch('/admin/analytics?key='+encodeURIComponent(KEY)),
+      apiFetch('/admin/refund-queue?key='+encodeURIComponent(KEY))
+    ]);
+    document.getElementById('ov-revenue').textContent='$'+(analytics.totalRevenue||0).toFixed(2);
+    document.getElementById('ov-views').textContent=analytics.totalViews||0;
+    document.getElementById('ov-pending').textContent='$'+(analytics.pendingPayouts||0).toFixed(2);
+    document.getElementById('ov-creators').textContent=analytics.creatorCount||0;
+    document.getElementById('ov-drops').textContent=analytics.totalDrops||0;
+    document.getElementById('ov-refunds').textContent=analytics.totalRefunds||0;
+    document.getElementById('ov-banned').textContent=analytics.bannedCount||0;
+    document.getElementById('ov-frozen').textContent=analytics.frozenCount||0;
+    document.getElementById('overview-updated').textContent='Last updated '+new Date().toLocaleTimeString();
+    const pending=(queue.refunds||[]).filter(r=>r.refundStatus==='pending'||r.refundStatus==='platform_review');
+    const _badge=document.getElementById('nav-badge-refunds');
+    if(_badge){if(pending.length>0){_badge.textContent=pending.length;_badge.classList.add('show');}else _badge.classList.remove('show');}
+    const reasons=analytics.topRefundReasons||[];
+    const maxCount=reasons[0]?.count||1;
+    const reasonsEl=document.getElementById('ov-reasons');
+    if(!reasonsEl)return;
+    if(!reasons.length){reasonsEl.innerHTML='<div style="color:var(--gray);font-size:13px">No refund data yet</div>';return;}
+    reasonsEl.innerHTML=reasons.map(r=>`<div class="bar-row"><div class="bar-label">${r.reason}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(r.count/maxCount*100)}%"></div></div><div class="bar-count">${r.count}</div></div>`).join('');
+  }catch(e){showToast('Overview failed: '+e.message,true);}
+}
+
+async function loadRefunds(){
+  const listEl=document.getElementById('refund-list');
+  listEl.innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const data=await apiFetch('/admin/refund-queue?key='+encodeURIComponent(KEY));
+    const refunds=data.refunds||[];
+    const now=Date.now();
+    const pending=refunds.filter(r=>r.refundStatus==='pending'||r.refundStatus==='platform_review');
+    const copyright=pending.filter(r=>r.reason==='Copyrighted or stolen content');
+    const expired=pending.filter(r=>r.creatorDeadline&&now>r.creatorDeadline);
+    const _rqp=document.getElementById('rq-pending'); if(_rqp) _rqp.textContent=pending.length;
+    const _rqc=document.getElementById('rq-copyright'); if(_rqc) _rqc.textContent=copyright.length;
+    const _rqe=document.getElementById('rq-expired'); if(_rqe) _rqe.textContent=expired.length;
+    const _badge2=document.getElementById('nav-badge-refunds');
+    if(_badge2){if(pending.length>0){_badge2.textContent=pending.length;_badge2.classList.add('show');}else _badge2.classList.remove('show');}
+    if(!pending.length){listEl.innerHTML='<div class="empty"><div class="empty-icon">✓</div>Queue is clear</div>';return;}
+    const sorted=[...pending].sort((a,b)=>{
+      if((a.reason==='Copyrighted or stolen content')!==(b.reason==='Copyrighted or stolen content'))return a.reason==='Copyrighted or stolen content'?-1:1;
+      return b.submittedAt-a.submittedAt;
+    });
+    const copyrightItems=sorted.filter(r=>r.reason==='Copyrighted or stolen content');
+    const otherItems=sorted.filter(r=>r.reason!=='Copyrighted or stolen content');
+    let html='';
+    if(copyrightItems.length){html+='<div class="section-lbl">COPYRIGHT CLAIMS</div>';copyrightItems.forEach(r=>html+=buildRefundCard(r,now));}
+    if(otherItems.length){html+='<div class="section-lbl">DISPUTES</div>';otherItems.forEach(r=>html+=buildRefundCard(r,now));}
+    listEl.innerHTML=html;
+  }catch(e){listEl.innerHTML=`<div class="empty"><div class="empty-icon">!</div>${e.message}</div>`;}
+}
+
+function buildRefundCard(r,now){
+  const isCopyright=r.reason==='Copyrighted or stolen content';
+  const isExpired=r.creatorDeadline&&now>r.creatorDeadline;
+  const minsAgo=Math.floor((now-r.submittedAt)/60000);
+  const timeAgo=minsAgo<60?minsAgo+'m ago':minsAgo<1440?Math.floor(minsAgo/60)+'h ago':Math.floor(minsAgo/1440)+'d ago';
+  let playBar='';
+  if(r.playStatus==='failed')playBar='<div class="play-bar fail">Video failed to play</div>';
+  else if(r.playStatus==='partial')playBar=`<div class="play-bar partial">Played ${r.playedPct||0}% then stopped${r.stallCount?' · stalled '+r.stallCount+'x':''}</div>`;
+  else if(r.playStatus==='played')playBar='<div class="play-bar ok">Video played fully</div>';
+  const routePill=isCopyright?'<span class="pill pill-copyright">COPYRIGHT</span>':r.refundStatus==='platform_review'?'<span class="pill pill-amber">PLATFORM REVIEW</span>':'<span class="pill pill-gray">CREATOR QUEUE</span>';
+  const deadlineNote=r.creatorDeadline?(isExpired?'<span style="color:var(--red);font-size:11px;font-weight:700">Deadline expired</span>':`<span style="color:var(--gray);font-size:11px">Creator has ${Math.ceil((r.creatorDeadline-now)/3600000)}h left</span>`):'';
+  return `<div class="card ${isCopyright?'flagged':''}" id="rc-${r.id}">
+    <div class="card-head"><div><div class="card-title">${r.title||r.dropId||'Unknown'}</div><div class="card-meta">@${r._creatorUsername||r.creatorUsername} · $${r.price||0} ${r.currency||'USD'} · ${timeAgo}</div></div>${routePill}</div>
+    <div class="card-body"><div style="font-size:13px;margin-bottom:8px"><span style="color:#444;font-size:11px">REASON </span>${r.reason||'None'}</div>${r.details?`<div style="font-size:12px;color:var(--gray);margin-bottom:8px">${r.details}</div>`:''}${playBar}</div>
+    <div class="card-actions">
+      <button class="btn-approve" onclick="refundAction('${r.id}','${r._creatorUsername||r.creatorUsername}','approve')">✓ Approve Refund</button>
+      <button class="btn-deny" onclick="refundAction('${r.id}','${r._creatorUsername||r.creatorUsername}','deny')">✕ Deny</button>
+      ${isCopyright
+        ? `<button class="btn-warn" onclick="flagDropFromQueue('${r.id}','${r._creatorUsername||r.creatorUsername}','${(r.title||r.dropId||'').replace(/'/g,'')}','${r.dropId||''}')">⚠ Flag &amp; Hide Drop</button>`
+        : `<button class="btn-sm" onclick="forwardToCreator('${r.id}','${r._creatorUsername||r.creatorUsername}')">📨 Forward to Creator</button>`}
+      ${deadlineNote}
+    </div>
+    <div class="inline-err" id="rc-err-${r.id}" style="display:none"></div>
+  </div>`;
+}
+
+async function refundAction(refundId,creatorUsername,act){
+  const card=document.getElementById('rc-'+refundId);
+  const errEl=document.getElementById('rc-err-'+refundId);
+  if(card)card.style.opacity='0.5';
+  try{
+    const data=await apiFetch('/admin/refund-action',{method:'POST',body:JSON.stringify({adminKey:KEY,creatorUsername,refundId:String(refundId),action:act})});
+    if(data.error)throw new Error(data.error);
+    showToast(act==='approve'?'Refund approved':'Refund denied');
+    if(card)card.remove();
+    loadRefunds();
+  }catch(e){
+    if(card)card.style.opacity='1';
+    if(errEl){errEl.textContent=e.message;errEl.style.display='block';}
+    showToast(e.message,true);
+  }
+}
+
+async function flagDropFromQueue(refundId, creatorUsername, dropTitle, dropId) {
+  // One-click: approve refund + flag the drop + email creator
+  showAdminPrompt('Reason for flagging (included in creator email):', 'Copyright violation — content flagged following a viewer report', async (reason) => {
+  const card = document.getElementById('rc-' + refundId);
+  if (card) card.style.opacity = '0.5';
+  try {
+    // Step 1: Approve the refund
+    const refundRes = await apiFetch('/admin/refund-action', {
+      method: 'POST',
+      body: JSON.stringify({ adminKey: KEY, creatorUsername, refundId: String(refundId), action: 'approve' })
+    });
+    if (refundRes.error) throw new Error('Refund: ' + refundRes.error);
+    // Step 2: Flag the drop
+    const flagRes = await apiFetch('/admin/flag-copyright', {
+      method: 'POST',
+      body: JSON.stringify({ adminKey: KEY, creatorUsername, dropId, reason })
+    });
+    if (flagRes.error) throw new Error('Flag: ' + flagRes.error);
+    showToast('Refund approved + drop hidden + creator emailed');
+    if (card) card.remove();
+    loadRefunds();
+  } catch(e) {
+    if (card) card.style.opacity = '1';
+    showToast(e.message, true);
+  }
+  }); // end showAdminConfirm
+}
+
+async function forwardToCreator(refundId, creatorUsername) {
+  showAdminConfirm('Forward this refund to @' + creatorUsername + ' for review?<br>They will have 48 hours to approve or deny.', async () => {
+  const card = document.getElementById('rc-' + refundId);
+  if (card) card.style.opacity = '0.5';
+  try {
+    const data = await apiFetch('/admin/forward-to-creator', {
+      method: 'POST',
+      body: JSON.stringify({ adminKey: KEY, creatorUsername, refundId: String(refundId) })
+    });
+    if (data.error) throw new Error(data.error);
+    showToast('Forwarded to @' + creatorUsername + ' — they have 48h to respond');
+    if (card) card.remove();
+    loadRefunds();
+  } catch(e) {
+    if (card) card.style.opacity = '1';
+    showToast(e.message, true);
+  }
+  }); // end showAdminConfirm
+}
+
+async function runDeadlines(){
+  showToast('Running...');
+  try{const data=await apiFetch('/admin/check-deadlines',{method:'POST',body:JSON.stringify({adminKey:KEY})});showToast('Auto-approved '+(data.processed||0)+' refunds');loadRefunds();}
+  catch(e){showToast(e.message,true);}
+}
+
+async function loadCreatorDrops(){
+  const u=document.getElementById('cr-username').value.trim().replace(/^@/,'');
+  if(!u){showToast('Enter a username',true);return;}
+  const wrap=document.getElementById('cr-drops-wrap');
+  wrap.innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const data=await apiFetch('/admin/creator-drops?username='+encodeURIComponent(u)+'&key='+encodeURIComponent(KEY));
+    if(data.error)throw new Error(data.error);
+    if(!data.drops.length){wrap.innerHTML='<div style="color:var(--gray);font-size:13px">No drops for @'+u+'</div>';return;}
+    let html=`<div style="font-size:12px;color:var(--gray);margin-bottom:12px">@${data.username} · ${data.email||'no email'} · ${data.drops.length} drops</div><div class="card">`;
+    data.drops.forEach(d=>{
+      const held = d.copyrightHold;
+      const expired = d.expired;
+      const escapedTitle = (d.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const statusText = held
+        ? '<span style="color:var(--red)">Copyright hold</span>'
+        : expired
+          ? '<span style="color:#444">Expired</span>'
+          : d.live
+            ? '<span style="color:var(--green)">Live</span>'
+            : '<span style="color:#555">Hidden</span>';
+      const actions = held
+        ? `<button class="btn-approve" onclick="restoreDrop('${data.username}','${d.id}','${escapedTitle}')">Restore</button>`
+        : expired
+          ? '<span style="color:#333;font-size:11px">EXPIRED</span>'
+          : `<button class="btn-deny" onclick="flagCopyright('${data.username}','${d.id}','${escapedTitle}')">Flag Copyright</button>`;
+      html += `<div class="drop-row" style="${expired?'opacity:0.5':''}">
+        <div class="drop-info">
+          <div class="drop-title-t">${d.title||'Untitled'}</div>
+          <div class="drop-meta-t">$${d.price} · ${d.views} views · ${statusText} · <span style="color:#333;user-select:all">ID: ${d.id}</span></div>
+          ${held ? `<div style="font-size:11px;color:var(--red);margin-top:2px">${d.copyrightReason||''}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">${actions}</div>
+      </div>`;
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }catch(e){wrap.innerHTML=`<div style="color:var(--red);font-size:13px">${e.message}</div>`;}
+}
+
+async function flagCopyright(creatorUsername,dropId,dropTitle){
+  showAdminPrompt('Reason for flagging "' + dropTitle + '":<br>(Included in creator email)', 'Potential copyright violation', async (reason) => {
+    try{
+      const data=await apiFetch('/admin/flag-copyright',{method:'POST',body:JSON.stringify({adminKey:KEY,creatorUsername,dropId,reason})});
+      if(data.error)throw new Error(data.error);
+      showToast('"'+dropTitle+'" hidden · creator emailed');
+      loadCreatorDrops();
+    }catch(e){showToast(e.message,true);}
+  });
+}
+
+async function restoreDrop(creatorUsername,dropId,dropTitle){
+  showAdminConfirm('Restore "' + dropTitle + '"?<br>Makes it live and emails the creator.', async () => {
+  try{
+    const data=await apiFetch('/admin/restore-drop',{method:'POST',body:JSON.stringify({adminKey:KEY,creatorUsername,dropId})});
+    if(data.error)throw new Error(data.error);
+    showToast('"'+dropTitle+'" restored');
+    loadCreatorDrops();
+  }catch(e){showToast(e.message,true);}
+  }); // end showAdminConfirm
+}
+
+async function loadCreators(){
+  const listEl=document.getElementById('creator-list');
+  listEl.innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const data=await apiFetch('/admin/creators?key='+encodeURIComponent(KEY));
+    _allCreators=data.creators||[];
+    renderCreators(_allCreators);
+  }catch(e){listEl.innerHTML=`<div class="empty"><div class="empty-icon">!</div>${e.message}</div>`;}
+}
+
+function filterCreators(q){
+  const filtered=q?_allCreators.filter(c=>c.username.toLowerCase().includes(q.toLowerCase())||(c.email||'').toLowerCase().includes(q.toLowerCase())):_allCreators;
+  renderCreators(filtered);
+}
+
+function renderCreators(list){
+  const listEl=document.getElementById('creator-list');
+  if(!list.length){listEl.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No creators found</div>';return;}
+  const banned=list.filter(c=>c.banned);
+  const frozen=list.filter(c=>c.payoutsFrozen&&!c.banned);
+  const flagged=list.filter(c=>c.strikeCount>0&&!c.payoutsFrozen&&!c.banned);
+  const clean=list.filter(c=>c.strikeCount===0&&!c.payoutsFrozen&&!c.banned);
+  let html='';
+  if(banned.length)html+=`<div class="section-lbl">BANNED (${banned.length})</div><div class="card">${banned.map(creatorRow).join('')}</div>`;
+  if(frozen.length)html+=`<div class="section-lbl">FROZEN PAYOUTS (${frozen.length})</div><div class="card">${frozen.map(creatorRow).join('')}</div>`;
+  if(flagged.length)html+=`<div class="section-lbl">HAS STRIKES (${flagged.length})</div><div class="card">${flagged.map(creatorRow).join('')}</div>`;
+  if(clean.length)html+=`<div class="section-lbl">ALL CLEAR (${clean.length})</div><div class="card">${clean.map(creatorRow).join('')}</div>`;
+  listEl.innerHTML=html;
+}
+
+function creatorRow(c){
+  const dots=Array.from({length:3},(_,i)=>`<div class="strike-dot ${i<c.strikeCount?'hit':'empty'}"></div>`).join('');
+  let statusPill='';
+  if(c.banned)statusPill='<span class="pill pill-red">BANNED</span>';
+  else if(c.payoutsFrozen)statusPill='<span class="pill pill-amber">FROZEN</span>';
+  else if(c.strikeCount>0)statusPill=`<span class="pill pill-amber">${c.strikeCount} STRIKE${c.strikeCount>1?'S':''}</span>`;
+  const avatarStyle=c.avatarUrl?`background-image:url(${c.avatarUrl});background-size:cover`:'';
+  const initial=(c.username||'?').charAt(0).toUpperCase();
+  return `<div class="creator-row">
+    <div class="creator-avatar" style="${avatarStyle}">${c.avatarUrl?'':initial}</div>
+    <div class="creator-info">
+      <div class="creator-name">@${c.username}${c.verified?' ✓':''}</div>
+      <div class="creator-sub">${c.email||'no email'} · ${c.dropCount} drops · $${(c.grossRevenue||0).toFixed(2)} earned${c.pendingRefunds?' · '+c.pendingRefunds+' pending refunds':''}</div>
+      <div class="strikes-dots">${dots}</div>
+    </div>
+    <div style="margin:0 8px">${statusPill}</div>
+    <div class="creator-actions">${!c.banned?`<button class="btn-sm" onclick="issueStrike('${c.username}','warning')">Warn</button><button class="btn-sm" onclick="issueStrike('${c.username}','freeze')">Freeze</button><button class="btn-sm" onclick="issueStrike('${c.username}','ban')">Ban</button>`:`<button class="btn-approve" onclick="unban('${c.username}')">Unban</button>`}</div>
+  </div>`;
+}
+
+async function issueStrike(username,action){
+  const defaults={warning:'Policy violation — first warning',freeze:'Second strike — payouts frozen 30 days',ban:'Third strike — permanent ban'};
+  const labels={warning:'Warn @'+username,freeze:'Freeze @'+username,ban:'Ban @'+username};
+  showAdminPrompt((labels[action]||'Issue '+action)+' — reason:', defaults[action]||'', async (reason) => {
+  try{
+    const data=await apiFetch('/admin/strike',{method:'POST',body:JSON.stringify({adminKey:KEY,creatorUsername:username,reason,action})});
+    if(data.error)throw new Error(data.error);
+    const msgs={warning:'Warning issued to @'+username,freeze:'Payouts frozen for @'+username,ban:'@'+username+' banned'};
+    showToast(msgs[action]||'Strike issued');
+    loadCreators();
+  }catch(e){showToast(e.message,true);}
+  });
+}
+
+async function unban(username){
+  showAdminConfirm('Unban @' + username + '?<br>Restores their account and emails them.', async () => {
+  try{
+    const data=await apiFetch('/admin/unban',{method:'POST',body:JSON.stringify({adminKey:KEY,creatorUsername:username})});
+    if(data.error)throw new Error(data.error);
+    showToast('@'+username+' unbanned');
+    loadCreators();
+  }catch(e){showToast(e.message,true);}
+  }); // end showAdminConfirm
+}
+
+async function loadAnalytics(){
+  const el=document.getElementById('analytics-content');
+  el.innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const data=await apiFetch('/admin/analytics?key='+encodeURIComponent(KEY));
+    const maxR=(data.topRefundReasons?.[0]?.count)||1;
+    el.innerHTML=`
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num green">$${(data.totalRevenue||0).toFixed(2)}</div><div class="stat-lbl">GROSS REVENUE</div></div>
+        <div class="stat-card"><div class="stat-num">${data.totalViews||0}</div><div class="stat-lbl">PAID VIEWS</div></div>
+        <div class="stat-card"><div class="stat-num">${data.creatorCount||0}</div><div class="stat-lbl">CREATORS</div></div>
+        <div class="stat-card"><div class="stat-num">${data.totalDrops||0}</div><div class="stat-lbl">TOTAL DROPS</div></div>
+        <div class="stat-card"><div class="stat-num amber">$${(data.pendingPayouts||0).toFixed(2)}</div><div class="stat-lbl">PENDING PAYOUTS (HELD)</div></div>
+        <div class="stat-card"><div class="stat-num amber">${data.totalRefunds||0}</div><div class="stat-lbl">TOTAL REFUNDS</div></div>
+        <div class="stat-card"><div class="stat-num red">${data.bannedCount||0}</div><div class="stat-lbl">BANNED</div></div>
+        <div class="stat-card"><div class="stat-num amber">${data.frozenCount||0}</div><div class="stat-lbl">FROZEN</div></div>
+      </div>
+      <div class="section-lbl">TOP REFUND REASONS</div>
+      ${(data.topRefundReasons||[]).map(r=>`<div class="bar-row"><div class="bar-label">${r.reason}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(r.count/maxR*100)}%"></div></div><div class="bar-count">${r.count}</div></div>`).join('')||'<div style="color:var(--gray);font-size:13px">No refund data yet</div>'}`;
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-icon">!</div>${e.message}</div>`;}
+}
+
+let currentTicketFilter = 'open';
+
+async function loadTickets(status) {
+  currentTicketFilter = status || 'open';
+  // Update tab styles
+  ['open','resolved','all'].forEach(s => {
+    const btn = document.getElementById('tk-tab-' + s);
+    if (btn) { btn.style.borderColor = s === currentTicketFilter ? 'var(--green)' : 'var(--border)'; btn.style.color = s === currentTicketFilter ? 'var(--green)' : 'var(--gray)'; }
+  });
+  const listEl = document.getElementById('ticket-list');
+  listEl.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await apiFetch('/admin/tickets?key=' + encodeURIComponent(KEY) + '&status=' + currentTicketFilter);
+    if (data.error) throw new Error(data.error);
+    document.getElementById('tk-open').textContent    = data.open || 0;
+    document.getElementById('tk-total').textContent   = data.total || 0;
+    document.getElementById('tk-resolved').textContent = (data.total || 0) - (data.open || 0);
+    // Update nav badge
+    const badge = document.getElementById('nav-badge-tickets');
+    if (data.open > 0) { badge.textContent = data.open; badge.classList.add('show'); } else badge.classList.remove('show');
+    const tickets = data.tickets || [];
+    if (!tickets.length) {
+      listEl.innerHTML = '<div class="empty"><div class="empty-icon">🎫</div>No ' + currentTicketFilter + ' tickets</div>';
+      return;
+    }
+    const typeIcons = { refund: '💸', technical: '⚙️', copyright: '⚠️', general: '💬' };
+    const typeLabels = { refund: 'Refund Request', technical: 'Technical Problem', copyright: 'Copyright Report', general: 'General Report' };
+    listEl.innerHTML = tickets.map(function(t) {
+      var ago = (function() { var m = Math.floor((Date.now() - t.createdAt) / 60000); return m < 60 ? m + 'm ago' : m < 1440 ? Math.floor(m/60) + 'h ago' : Math.floor(m/1440) + 'd ago'; })();
+      var icon = typeIcons[t.type] || '💬';
+      var label = typeLabels[t.type] || 'Report';
+      var isOpen = t.status === 'open';
+      var replyBtn = t.email
+        ? '<a href="mailto:' + t.email + '?subject=Re:%20Your%20PlayOnce%20report&body=Hi%20@' + t.username + '," class="btn-action" style="text-decoration:none;display:inline-block;padding:9px 18px">✉ Reply by Email</a>'
+        : '<span style="font-size:12px;color:var(--gray)">No email — cannot reply</span>';
+      var noteHtml = t.adminNote ? '<div style="font-size:12px;color:var(--gray);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">Note: ' + t.adminNote + '</div>' : '';
+      var actionsHtml = isOpen ? '<div class="card-actions">' + replyBtn + '<button class="btn-sm" onclick="resolveTicket(\'' + t.id + '\')">✓ Resolve</button></div>' : '';
+      return '<div class="card" id="tk-' + t.id + '" style="' + (isOpen ? 'border-color:rgba(255,184,0,0.25)' : '') + '">' +
+        '<div class="card-head"><div><div class="card-title">' + icon + ' ' + label + '</div><div class="card-meta">@' + t.username + (t.email ? ' · ' + t.email : '') + ' · ' + ago + '</div></div>' +
+        (isOpen ? '<span class="pill pill-amber">OPEN</span>' : '<span class="pill pill-green">RESOLVED</span>') + '</div>' +
+        '<div class="card-body"><div style="font-size:13px;color:var(--white);line-height:1.6;white-space:pre-wrap">' + t.message + '</div>' + noteHtml + '</div>' +
+        actionsHtml + '</div>';
+    }).join('');
+  } catch(e) { listEl.innerHTML = '<div class="empty"><div class="empty-icon">!</div>' + e.message + '</div>'; }
+}
+
+async function resolveTicket(ticketId) {
+  showAdminPrompt('Add a note (optional):', '', async (note) => {
+  const card = document.getElementById('tk-' + ticketId);
+  if (card) card.style.opacity = '0.5';
+  try {
+    const data = await apiFetch('/admin/ticket-resolve', {
+      method: 'POST',
+      body: JSON.stringify({ adminKey: KEY, ticketId, adminNote: note || '' })
+    });
+    if (data.error) throw new Error(data.error);
+    showToast('Ticket resolved');
+    loadTickets(currentTicketFilter);
+  } catch(e) {
+    if (card) card.style.opacity = '1';
+    showToast(e.message, true);
+  }
+  }); // end showAdminPrompt
+}
+
+async function testExpireDrop() {
+  const username = document.getElementById('test-expire-username').value.trim().replace(/^@/,'');
+  const dropId   = document.getElementById('test-expire-dropid').value.trim();
+  if (!username || !dropId) { showToast('Enter username and drop ID', true); return; }
+  try {
+    const data = await apiFetch('/admin/test-expire-drop', {
+      method: 'POST',
+      body: JSON.stringify({ adminKey: KEY, creatorUsername: username, dropId })
+    });
+    if (data.error) throw new Error(data.error);
+    showToast('Drop "' + (data.drop||dropId) + '" set to 4 days ago — refresh vault to verify');
+  } catch(e) { showToast(e.message, true); }
+}
+
+async function runCopyrightReview() {
+  const btn = event?.target; if (btn) { btn.disabled = true; btn.textContent = '⏳ Running...'; }
+  try {
+    const data = await apiFetch('/cron/copyright-review', {
+      method: 'POST',
+      body: JSON.stringify({ key: CRON_KEY })
+    });
+    if (data.error) throw new Error(data.error);
+    showToast('Done — restored: ' + (data.restored||0) + ' · skipped: ' + (data.skipped||0) + (data.errors > 0 ? ' · errors: ' + data.errors : ''));
+    loadCopyrightClaims(); // refresh list
+  } catch(e) {
+    showToast(e.message || 'Review failed', true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Run Auto-Restore Now'; }
+  }
+}
+
+async function loadCopyrightClaims() {
+  const el = document.getElementById('copyright-claims-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const data = await apiFetch('/admin/refund-queue?key=' + encodeURIComponent(KEY));
+    const claims = (data.refunds || []).filter(r => r.isCopyrightClaim || r.reason === 'Copyrighted or stolen content');
+    if (!claims.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>No copyright claims</div>';
+      return;
+    }
+    const now = Date.now();
+    el.innerHTML = claims.sort((a,b) => (a.proofDeadline||0) - (b.proofDeadline||0)).map(r => {
+      const ago = Math.floor((now - r.submittedAt) / 60000);
+      const timeAgo = ago < 60 ? ago + 'm ago' : ago < 1440 ? Math.floor(ago/60) + 'h ago' : Math.floor(ago/1440) + 'd ago';
+      const hidden = r.dropHidden ? '<span style="color:var(--green);font-size:11px;font-weight:700">✓ Drop hidden</span>' : '<span style="color:var(--red);font-size:11px">Drop not found</span>';
+
+      // Proof deadline countdown
+      let deadlineHtml = '';
+      if (r.proofDeadline) {
+        const msLeft = r.proofDeadline - now;
+        if (r.proofConfirmed) {
+          deadlineHtml = '<span style="color:var(--green);font-size:11px;font-weight:700">✓ Proof confirmed — drop stays hidden</span>';
+        } else if (msLeft <= 0) {
+          deadlineHtml = '<span style="color:var(--red);font-size:11px;font-weight:700">⏰ Deadline passed — will auto-restore on next cron</span>';
+        } else {
+          const hLeft = Math.floor(msLeft / 3600000);
+          const mLeft = Math.floor((msLeft % 3600000) / 60000);
+          const urgentColor = hLeft < 2 ? 'var(--red)' : hLeft < 4 ? 'var(--amber)' : '#555';
+          deadlineHtml = '<span style="color:' + urgentColor + ';font-size:11px;font-weight:700">⏰ Auto-restores in ' + hLeft + 'h ' + mLeft + 'm if no proof confirmed</span>';
+        }
+      }
+
+      const username = (r.creatorUsername || r._creatorUsername || '').replace(/'/g, '');
+      return '<div class="card flagged" style="margin-bottom:10px">' +
+        '<div class="card-head">' +
+          '<div>' +
+            '<div class="card-title">📹 ' + (r.title || r.dropId || 'Unknown drop') + '</div>' +
+            '<div class="card-meta">@' + username + ' · ' + timeAgo + ' · ' + hidden + '</div>' +
+          '</div>' +
+          '<span class="pill pill-copyright">COPYRIGHT</span>' +
+        '</div>' +
+        '<div class="card-body">' +
+          (r.proof && r.proof.length > 20
+            ? '<div style="background:#060606;border:1px solid rgba(0,255,102,0.2);padding:10px;margin-bottom:8px;border-radius:2px"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--green);margin-bottom:6px">✓ PROOF SUBMITTED</div><div style="font-size:12px;color:var(--gray);line-height:1.6;white-space:pre-wrap">' + r.proof + '</div></div>'
+            : '<div style="background:#060606;border:1px solid rgba(255,68,68,0.2);padding:10px;margin-bottom:8px;border-radius:2px"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--red);margin-bottom:4px">✕ NO PROOF PROVIDED</div><div style="font-size:11px;color:#444">Claimant did not submit proof — drop will auto-restore after 6h</div></div>') +
+          (r.claimantEmail ? '<div style="font-size:12px;color:#555;margin-bottom:6px">📧 ' + r.claimantEmail + '</div>' : '<div style="font-size:12px;color:#333;margin-bottom:6px">No contact email provided</div>') +
+          (deadlineHtml ? '<div style="margin-top:6px">' + deadlineHtml + '</div>' : '') +
+        '</div>' +
+        '<div class="card-actions">' +
+          (!r.proofConfirmed ? '<button class="btn-approve" onclick="confirmProof(\'' + r.id + '\',\'' + username + '\')">✓ Confirm Proof</button>' : '') +
+          '<button class="btn-sm" onclick="loadCreatorDropsForClaim(\'' + username + '\')">🔍 Review Drops</button>' +
+          '<button class="btn-deny" onclick="dismissClaim(\'' + r.id + '\',\'' + username + '\')">✕ Dismiss</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">!</div>${e.message}</div>`;
+  }
+}
+
+function loadCreatorDropsForClaim(username) {
+  document.getElementById('cr-username').value = username;
+  loadCreatorDrops();
+  document.getElementById('cr-username').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function confirmProof(claimId, creatorUsername) {
+  showAdminConfirm('Confirm proof received for this claim?<br><br>The drop will remain hidden permanently until you manually restore it.', async () => {
+    try {
+      const data = await apiFetch('/admin/confirm-proof', {
+        method: 'POST',
+        body: JSON.stringify({ adminKey: KEY, creatorUsername, claimId })
+      });
+      if (data.error) throw new Error(data.error);
+      showToast('Proof confirmed — drop stays hidden');
+      loadCopyrightClaims();
+    } catch(e) { showToast(e.message, true); }
+  });
+}
+
+async function dismissClaim(claimId, creatorUsername) {
+  showAdminConfirm('Dismiss this copyright claim?<br>The drop will remain hidden until manually restored.', async () => {
+    try {
+      const data = await apiFetch('/admin/dismiss-claim', {
+        method: 'POST',
+        body: JSON.stringify({ adminKey: KEY, creatorUsername, claimId })
+      });
+      if (data.error) throw new Error(data.error);
+      showToast('Claim dismissed');
+      loadCopyrightClaims();
+    } catch(e) { showToast(e.message, true); }
+  });
+}
+
+function showAdminPrompt(message, defaultVal, onOk) {
+  const modal = document.getElementById('modal-admin-prompt');
+  const msg   = document.getElementById('admin-prompt-msg');
+  const input = document.getElementById('admin-prompt-input');
+  const okBtn = document.getElementById('admin-prompt-ok');
+  if (!modal) { const v = defaultVal; if (v !== null && onOk) onOk(v); return; }
+  msg.innerHTML = message.replace(/\n/g, '<br>');
+  input.value = defaultVal || '';
+  setTimeout(() => input.focus(), 50);
+  document.getElementById('admin-prompt-cancel').onclick = () => { modal.style.display = 'none'; };
+  okBtn.onclick = () => {
+    const val = input.value.trim();
+    if (!val) { input.style.borderColor = 'var(--red)'; return; }
+    input.style.borderColor = '#222';
+    modal.style.display = 'none';
+    if (onOk) onOk(val);
+  };
+  modal.style.display = 'flex';
+}
+
+function showAdminConfirm(message, onOk) {
+  const modal = document.getElementById('modal-admin-confirm');
+  const msg   = document.getElementById('admin-confirm-msg');
+  const okBtn = document.getElementById('admin-confirm-ok');
+  if (!modal) { if (onOk) onOk(); return; }
+  msg.innerHTML = message.replace(/\n/g, '<br>');
+  okBtn.onclick = () => { modal.style.display = 'none'; if (onOk) onOk(); };
+  document.getElementById('admin-confirm-cancel').onclick = () => { modal.style.display = 'none'; };
+  modal.style.display = 'flex'; modal.style.alignItems = 'center'; modal.style.justifyContent = 'center';
+  window.scrollTo(0, 0);
+}
+
+function logout(){KEY='';_allCreators=[];document.getElementById('shell').style.display='none';document.getElementById('login-section').style.display='block';document.getElementById('admin-key').value='';}
+</script>
+<!-- Admin confirm modal -->
+<div id="modal-admin-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+  <div style="background:#0d0d0d;border:1px solid #2a2a2a;padding:28px 24px;max-width:380px;width:90%;margin:auto">
+    <div id="admin-confirm-msg" style="font-size:14px;color:#fff;line-height:1.8;margin-bottom:24px"></div>
+    <div style="display:flex;gap:10px">
+      <button id="admin-confirm-cancel" style="flex:1;padding:13px;background:none;border:1px solid #2a2a2a;color:#666;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.04em">CANCEL</button>
+      <button id="admin-confirm-ok" style="flex:1;padding:13px;background:none;border:1px solid var(--green);color:var(--green);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.04em">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-admin-prompt" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+  <div style="background:#0d0d0d;border:1px solid #2a2a2a;padding:24px;max-width:420px;width:90%;margin:auto">
+    <div id="admin-prompt-msg" style="font-size:14px;color:#fff;line-height:1.6;margin-bottom:12px"></div>
+    <textarea id="admin-prompt-input" rows="3" style="width:100%;background:#060606;border:1px solid #222;color:#fff;font-family:var(--font);font-size:13px;padding:10px;outline:none;resize:none;box-sizing:border-box;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:10px">
+      <button id="admin-prompt-cancel" style="flex:1;padding:12px;background:none;border:1px solid #2a2a2a;color:#666;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">CANCEL</button>
+      <button id="admin-prompt-ok" style="flex:1;padding:12px;background:none;border:1px solid var(--green);color:var(--green);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">SUBMIT</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
