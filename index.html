@@ -2883,7 +2883,19 @@ document.getElementById('btn-auth-submit').addEventListener('click', async ()=>{
       const username = document.getElementById('login-username').value.trim().toLowerCase().replace(/^@/,''); const pass = document.getElementById('login-password').value;
       if (!username || !pass) { errEl.textContent = 'ENTER USERNAME AND PASSWORD'; return; }
       const res = await apiPost('/api/auth/login', { username, password: pass });
-      if (res.error) { errEl.textContent = res.error; return; }
+      if (res.error) {
+        errEl.textContent = res.error;
+        // Highlight lockout more prominently
+        if (res.error.includes('locked') || res.error.includes('Too many')) {
+          errEl.style.color = 'var(--amber)';
+          errEl.style.border = '1px solid rgba(255,184,0,0.3)';
+          errEl.style.padding = '10px';
+          errEl.style.background = 'rgba(255,184,0,0.04)';
+        } else {
+          errEl.style.color = ''; errEl.style.border = ''; errEl.style.padding = ''; errEl.style.background = '';
+        }
+        return;
+      }
       if (res.token) saveToken(res.token); currentCreator = rewriteCreatorUrls({ ...res.creator, _password: pass });
       saveSession(currentCreator.username); saveSessionPass(pass); showToast('WELCOME BACK @' + currentCreator.username); loadCreatorDashboard(); show('creator');
     } else {
