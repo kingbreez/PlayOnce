@@ -1216,6 +1216,7 @@
 
         <div class="auth-error" id="auth-error"></div>
         <button class="btn-fill" id="btn-auth-submit" style="padding:15px;font-size:14px;font-weight:700;letter-spacing:0.04em">Log in</button>
+        <button type="button" onclick="openForgotPassword()" style="width:100%;background:none;border:none;color:#444;font-family:var(--font);font-size:12px;cursor:pointer;margin-top:12px;padding:8px;letter-spacing:0.04em">Forgot password?</button>
       </div>
     </form>
 
@@ -3566,6 +3567,68 @@ function openSettingsViewer() {
   openModal('modal-settings');
 }
 
+function openForgotPassword() {
+  // Pre-fill username if already typed
+  const u = document.getElementById('login-username')?.value.trim().replace(/^@/,'');
+  if (u) document.getElementById('forgot-username').value = u;
+  document.getElementById('forgot-step-1').style.display = 'block';
+  document.getElementById('forgot-step-2').style.display = 'none';
+  document.getElementById('forgot-error-1').textContent = '';
+  document.getElementById('forgot-error-2').textContent = '';
+  openModal('modal-forgot-password');
+}
+
+async function sendResetCode() {
+  const username = (document.getElementById('forgot-username')?.value || '').trim().replace(/^@/,'');
+  const errEl = document.getElementById('forgot-error-1');
+  errEl.textContent = '';
+  if (!username) { errEl.textContent = 'ENTER YOUR USERNAME'; return; }
+  const btn = document.querySelector('#forgot-step-1 .btn-fill');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    const res = await apiPost('/api/auth/forgot-password', { username });
+    if (res.error) { errEl.textContent = res.error; return; }
+    // Move to step 2
+    document.getElementById('forgot-step-1').style.display = 'none';
+    document.getElementById('forgot-step-2').style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'CONNECTION ERROR. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reset Code';
+  }
+}
+
+async function resetPassword() {
+  const username = (document.getElementById('forgot-username')?.value || '').trim().replace(/^@/,'');
+  const code = (document.getElementById('forgot-code')?.value || '').trim();
+  const newPassword = document.getElementById('forgot-new-password')?.value || '';
+  const confirm = document.getElementById('forgot-confirm-password')?.value || '';
+  const errEl = document.getElementById('forgot-error-2');
+  errEl.textContent = '';
+  if (!code) { errEl.textContent = 'ENTER THE 6-DIGIT CODE'; return; }
+  if (!newPassword) { errEl.textContent = 'ENTER A NEW PASSWORD'; return; }
+  if (newPassword.length < 6) { errEl.textContent = 'PASSWORD MUST BE AT LEAST 6 CHARACTERS'; return; }
+  if (newPassword !== confirm) { errEl.textContent = 'PASSWORDS DO NOT MATCH'; return; }
+  const btn = document.querySelector('#forgot-step-2 .btn-fill');
+  btn.disabled = true; btn.textContent = 'Resetting...';
+  try {
+    const res = await apiPost('/api/auth/reset-password', { username, code, newPassword });
+    if (res.error) { errEl.textContent = res.error; return; }
+    // Success — log them in
+    closeModal('modal-forgot-password');
+    if (res.token) saveToken(res.token);
+    currentCreator = rewriteCreatorUrls({ ...res.creator, _password: newPassword });
+    saveSession(currentCreator.username); saveSessionPass(newPassword);
+    showToast('Password reset — welcome back @' + currentCreator.username);
+    loadCreatorDashboard(); show('creator');
+  } catch(e) {
+    errEl.textContent = 'CONNECTION ERROR. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Reset Password';
+  }
+}
+
+
 function openSettings() {
   // Settings for creators — show account info
   const dz = document.getElementById('settings-danger-zone'); if (dz) dz.style.display = 'block';
@@ -4920,6 +4983,46 @@ restoreFilesFromDB().then(() => {
 <div class="modal-overlay" id="modal-settings-page"><div class="modal-box"><div class="modal-head"><div class="modal-head-title" id="settings-page-title"></div><button class="modal-close" onclick="closeModal('modal-settings-page');openModal('modal-settings')">✕</button></div><div class="modal-body" id="settings-page-body" style="font-size:13px;color:#aaa;line-height:1.7;max-height:70vh;overflow-y:auto"></div></div></div>
 
 <!-- In-app confirm modal — replaces browser confirm() -->
+<div class="modal-overlay" id="modal-forgot-password">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-head-title" id="forgot-modal-title">Reset Password</div>
+      <button class="modal-close" onclick="closeModal('modal-forgot-password')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:24px">
+      <!-- Step 1: Enter username -->
+      <div id="forgot-step-1">
+        <p style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.6">Enter your username and we will send a 6-digit reset code to your registered email.</p>
+        <div class="field" style="margin-bottom:16px">
+          <label>USERNAME</label>
+          <input type="text" id="forgot-username" placeholder="@username" autocomplete="off">
+        </div>
+        <div class="auth-error" id="forgot-error-1" style="margin-bottom:12px"></div>
+        <button class="btn-fill" onclick="sendResetCode()" style="padding:14px;font-size:13px;font-weight:700">Send Reset Code</button>
+      </div>
+      <!-- Step 2: Enter code + new password -->
+      <div id="forgot-step-2" style="display:none">
+        <p style="font-size:13px;color:var(--green);margin-bottom:16px">✓ Code sent to your email. Check your inbox.</p>
+        <div class="field" style="margin-bottom:12px">
+          <label>6-DIGIT CODE</label>
+          <input type="text" id="forgot-code" placeholder="123456" maxlength="6" autocomplete="off" style="letter-spacing:0.3em;font-size:18px;text-align:center">
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label>NEW PASSWORD</label>
+          <input type="password" id="forgot-new-password" placeholder="New password" autocomplete="new-password">
+        </div>
+        <div class="field" style="margin-bottom:16px">
+          <label>CONFIRM NEW PASSWORD</label>
+          <input type="password" id="forgot-confirm-password" placeholder="Confirm password" autocomplete="new-password">
+        </div>
+        <div class="auth-error" id="forgot-error-2" style="margin-bottom:12px"></div>
+        <button class="btn-fill" onclick="resetPassword()" style="padding:14px;font-size:13px;font-weight:700">Reset Password</button>
+        <button type="button" onclick="document.getElementById('forgot-step-1').style.display='block';document.getElementById('forgot-step-2').style.display='none'" style="width:100%;background:none;border:none;color:#444;font-family:var(--font);font-size:12px;cursor:pointer;margin-top:10px;padding:6px">← Use different username</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal-box" style="max-width:320px">
     <div class="modal-body" style="padding:24px 24px 8px;text-align:center">
