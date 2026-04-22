@@ -368,7 +368,11 @@
   /* ════ PLAYER — CINEMATIC ════ */
   #screen-player { display: block; background: #000; width: 100vw; height: 100dvh; position: fixed; inset: 0; z-index: 90; touch-action: none; -ms-touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .player-stage { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1; -webkit-user-select: none; user-select: none; }
-  .player-stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none !important; -webkit-user-select: none; user-select: none; }
+  .player-stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none !important; -webkit-user-select: none; user-select: none; transition: object-fit 300ms ease; }
+  /* Landscape on phone — fill screen edge to edge, true cinematic */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .player-stage video { object-fit: cover; }
+  }
   /* Video blocker — real div that sits above video and captures all touch/click on ALL browsers */
   #video-touch-blocker { position: absolute; inset: 0; z-index: 4; background: transparent; -webkit-tap-highlight-color: transparent; touch-action: none; cursor: pointer; }
 
@@ -422,25 +426,24 @@
   .player-controls-wrap {
     position: absolute; inset: 0; z-index: 95;
     pointer-events: none;
-    transition: opacity 500ms ease;   /* slow cinematic fade */
     display: flex; flex-direction: column; justify-content: space-between;
   }
-  .player-controls-wrap.hidden { opacity: 0; }
-  .player-controls-wrap.visible { opacity: 1; pointer-events: all; }
+  .player-controls-wrap.hidden { opacity: 0; pointer-events: none; transition: opacity 600ms ease; }
+  .player-controls-wrap.visible { opacity: 1; pointer-events: all; transition: opacity 400ms ease; }
 
-  /* Gradient vignette — top and bottom darken when controls are visible */
+  /* Cinematic vignette — fades in/out with controls */
   .player-controls-wrap::before {
     content: '';
     position: absolute; top: 0; left: 0; right: 0;
-    height: 120px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+    height: 180px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%);
     pointer-events: none; z-index: 0;
   }
   .player-controls-wrap::after {
     content: '';
     position: absolute; bottom: 0; left: 0; right: 0;
-    height: 120px;
-    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+    height: 200px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
     pointer-events: none; z-index: 0;
   }
 
@@ -2621,7 +2624,16 @@ document.getElementById('btn-fullscreen').addEventListener('click', function(e) 
   if (isFS) { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); } 
   else { if (video.webkitEnterFullscreen) { video.webkitEnterFullscreen(); } else if (stage.requestFullscreen) { stage.requestFullscreen(); } else if (stage.webkitRequestFullscreen) { stage.webkitRequestFullscreen(); } }
 });
-['fullscreenchange','webkitfullscreenchange'].forEach(ev => { document.addEventListener(ev, () => { const btn = document.getElementById('btn-fullscreen'); if (btn) btn.textContent = '⛶'; }); });
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => {
+  document.addEventListener(ev, () => {
+    const btn = document.getElementById('btn-fullscreen');
+    const video = document.getElementById('player-video');
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (btn) btn.textContent = isFS ? '⊡' : '⛶';
+    // Fullscreen — fill screen edge to edge cinematic, exit — restore
+    if (video) video.style.objectFit = isFS ? 'cover' : '';
+  });
+});
 
 
 
@@ -4782,14 +4794,37 @@ function startAntiCapture() {
   // Block long-press on ALL mobile browsers (Samsung, iOS, Firefox Android)
   const blocker = document.getElementById('video-touch-blocker');
   if (blocker) {
-    blocker.ontouchstart = (e) => { e.preventDefault(); };
     blocker.ontouchmove  = (e) => { e.preventDefault(); };
     blocker.oncontextmenu = (e) => { e.preventDefault(); return false; };
-    // Forward taps to player stage for play/pause
+    // Long press — prevent save/download menu
+    let _tapTimer = null;
+    blocker.ontouchstart = (e) => {
+      if (e.touches.length > 1) { e.preventDefault(); return; } // block pinch zoom
+      _tapTimer = setTimeout(() => { e.preventDefault(); }, 400); // block long press
+    };
+    blocker.ontouchend = (e) => {
+      clearTimeout(_tapTimer);
+    };
+    // Tap — same behaviour as desktop click
     blocker.onclick = (e) => {
       e.stopPropagation();
-      const stage = document.getElementById('player-stage');
-      if (stage) stage.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+      const wrap = document.getElementById('player-controls-wrap');
+      const isVisible = wrap && wrap.classList.contains('visible');
+      showPlayerControls();
+      if (isVisible) {
+        // Controls already visible — toggle play/pause
+        const video = document.getElementById('player-video');
+        const overlay = document.getElementById('play-overlay');
+        const buf = document.getElementById('buffering-indicator');
+        if (video) {
+          if (video.paused) {
+            video.muted = false; video.volume = 1.0;
+            video.play().then(() => { if (overlay) overlay.style.display = 'none'; if (buf) buf.style.display = 'none'; }).catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      }
     };
   }
 }
