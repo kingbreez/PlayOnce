@@ -369,25 +369,8 @@
   #screen-player { display: block; background: #000; width: 100vw; height: 100dvh; position: fixed; inset: 0; z-index: 90; touch-action: none; -ms-touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   .player-stage { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1; -webkit-user-select: none; user-select: none; }
   .player-stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none !important; -webkit-user-select: none; user-select: none; }
-  /* Landscape on phone — fill screen cinematic, no black bars */
-  @media (orientation: landscape) and (max-height: 500px) {
-    .player-stage video { object-fit: cover; }
-  }
   /* Video blocker — real div that sits above video and captures all touch/click on ALL browsers */
   #video-touch-blocker { position: absolute; inset: 0; z-index: 4; background: transparent; -webkit-tap-highlight-color: transparent; touch-action: none; cursor: pointer; }
-
-  /* Rotate to fullscreen hint — shows briefly on mobile */
-  .rotate-hint {
-    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15);
-    padding: 8px 16px; z-index: 20; pointer-events: none;
-    display: flex; align-items: center; gap: 8px;
-    animation: fadeInOut 3s ease forwards;
-    backdrop-filter: blur(8px);
-  }
-  .rotate-hint span { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: rgba(255,255,255,0.8); }
-  @keyframes fadeInOut { 0%{opacity:0} 15%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
-  @media (min-width: 900px) { .rotate-hint { display: none !important; } }
 
   /* Loading placeholder */
   .player-ph { font-size: 10px; letter-spacing: 0.4em; color: rgba(255,255,255,0.15); z-index: 2; position: absolute; }
@@ -928,17 +911,12 @@
   /* Banner safe area */
   #new-drop-banner { padding-top: max(12px, calc(env(safe-area-inset-top) + 4px)); }
 
-  @media (max-width: 600px) {
+  @media (max-width: 360px) {
     .vault-username { font-size: 16px; }
     .dash-payout-val { font-size: 28px; }
     .drop-thumb { height: 100px; }
     .dash-actions { grid-template-columns: 1fr 1fr; }
     .btn-verify-account { grid-column: 1 / -1; }
-    /* Hide fullscreen button on mobile — player already fills screen */
-    #btn-fullscreen { display: none !important; }
-  }
-  @media (max-width: 900px) {
-    #btn-fullscreen { display: none !important; }
   }
 
   /* ── Tablet (600-900px) — iPad, Android tablets ── */
@@ -1123,10 +1101,6 @@
   <div class="player-stage" id="player-stage">
     
     <video id="player-video" playsinline webkit-playsinline x5-playsinline preload="auto" disablePictureInPicture disableRemotePlayback x-webkit-airplay="deny" oncontextmenu="return false" style="pointer-events:none"></video>
-    <!-- Rotate hint for mobile -->
-    <div class="rotate-hint" id="rotate-hint" style="display:none">
-      <span>↻</span><span>ROTATE FOR CINEMATIC VIEW</span>
-    </div>
     <!-- Touch/click blocker — sits above video on ALL browsers including Samsung, Firefox, Safari -->
     <div id="video-touch-blocker" oncontextmenu="return false"></div>
     
@@ -2573,17 +2547,6 @@ function setupVideo(video, src, ph, overlay, status, buf, timerEl, stripEl) {
 function showOverlay() {
   const ll = document.getElementById('player-loading-logo');
   if (ll) ll.style.display = 'none';
-  // Show rotate hint on mobile if in portrait
-  if (window.innerWidth < 900 && window.innerHeight > window.innerWidth) {
-    const hint = document.getElementById('rotate-hint');
-    if (hint) {
-      hint.style.display = 'flex';
-      hint.style.animation = 'none';
-      hint.offsetHeight; // reflow
-      hint.style.animation = 'fadeInOut 3s ease forwards';
-      setTimeout(() => { hint.style.display = 'none'; }, 3000);
-    }
-  }
   if (overlayShown) return; overlayShown = true;
   const video = document.getElementById('player-video'); const ph = document.getElementById('player-ph'); const overlay = document.getElementById('play-overlay'); const status = document.getElementById('player-status'); const buf = document.getElementById('buffering-indicator');
   if (buf) buf.style.display = 'none'; ph.style.display = 'none'; video.style.display = 'block'; video.style.width = '100%'; video.style.height = '100%';
@@ -2653,25 +2616,12 @@ document.getElementById('player-stage').addEventListener('click', e => {
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', function(e) {
-  e.stopPropagation(); showPlayerControls();
-  // Desktop only — mobile player already fills the entire screen
-  const btn = document.getElementById('btn-fullscreen');
-  const stage = document.getElementById('player-stage');
-  const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  if (isFS) {
-    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
-  } else {
-    if (stage.requestFullscreen) stage.requestFullscreen();
-    else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
-  }
+  e.stopPropagation(); showPlayerControls(); 
+  const video = document.getElementById('player-video'); const stage = document.getElementById('player-stage'); const isFS = !!(document.fullscreenElement||document.webkitFullscreenElement);
+  if (isFS) { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); } 
+  else { if (video.webkitEnterFullscreen) { video.webkitEnterFullscreen(); } else if (stage.requestFullscreen) { stage.requestFullscreen(); } else if (stage.webkitRequestFullscreen) { stage.webkitRequestFullscreen(); } }
 });
-['fullscreenchange','webkitfullscreenchange'].forEach(ev => {
-  document.addEventListener(ev, () => {
-    const btn = document.getElementById('btn-fullscreen');
-    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    if (btn) btn.textContent = isFS ? '⊡' : '⛶';
-  });
-});
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => { document.addEventListener(ev, () => { const btn = document.getElementById('btn-fullscreen'); if (btn) btn.textContent = '⛶'; }); });
 
 
 
