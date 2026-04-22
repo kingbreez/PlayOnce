@@ -911,12 +911,14 @@
   /* Banner safe area */
   #new-drop-banner { padding-top: max(12px, calc(env(safe-area-inset-top) + 4px)); }
 
-  @media (max-width: 360px) {
+  @media (max-width: 600px) {
     .vault-username { font-size: 16px; }
     .dash-payout-val { font-size: 28px; }
     .drop-thumb { height: 100px; }
     .dash-actions { grid-template-columns: 1fr 1fr; }
     .btn-verify-account { grid-column: 1 / -1; }
+    /* Hide fullscreen button on mobile — player already fills screen */
+    #btn-fullscreen { display: none !important; }
   }
 
   /* ── Tablet (600-900px) — iPad, Android tablets ── */
@@ -2616,12 +2618,49 @@ document.getElementById('player-stage').addEventListener('click', e => {
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', function(e) {
-  e.stopPropagation(); showPlayerControls(); 
-  const video = document.getElementById('player-video'); const stage = document.getElementById('player-stage'); const isFS = !!(document.fullscreenElement||document.webkitFullscreenElement);
-  if (isFS) { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); } 
-  else { if (video.webkitEnterFullscreen) { video.webkitEnterFullscreen(); } else if (stage.requestFullscreen) { stage.requestFullscreen(); } else if (stage.webkitRequestFullscreen) { stage.webkitRequestFullscreen(); } }
+  e.stopPropagation(); showPlayerControls();
+  const isMobile = window.innerWidth < 900 || ('ontouchstart' in window);
+  const screen = document.getElementById('screen-player');
+  const btn = document.getElementById('btn-fullscreen');
+
+  if (isMobile) {
+    // Mobile — simulate fullscreen with CSS so custom controls stay visible
+    const isSimFS = screen.getAttribute('data-simfs') === '1';
+    if (isSimFS) {
+      // Exit simulated fullscreen
+      screen.removeAttribute('data-simfs');
+      screen.style.position = '';
+      screen.style.zIndex = '';
+      if (btn) btn.textContent = '⛶';
+      // Restore orientation
+      if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+    } else {
+      // Enter simulated fullscreen — already fullscreen on mobile, just lock landscape
+      screen.setAttribute('data-simfs', '1');
+      if (btn) btn.textContent = '✕';
+      // Try to lock landscape for better viewing
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    }
+  } else {
+    // Desktop — use real native fullscreen
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (isFS) {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    } else {
+      const stage = document.getElementById('player-stage');
+      if (stage.requestFullscreen) stage.requestFullscreen();
+      else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
+    }
+  }
 });
-['fullscreenchange','webkitfullscreenchange'].forEach(ev => { document.addEventListener(ev, () => { const btn = document.getElementById('btn-fullscreen'); if (btn) btn.textContent = '⛶'; }); });
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => {
+  document.addEventListener(ev, () => {
+    const btn = document.getElementById('btn-fullscreen');
+    if (btn) btn.textContent = '⛶';
+  });
+});
 
 
 
