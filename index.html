@@ -2155,6 +2155,8 @@ else { window.addEventListener('load', _preInitStripe, { once: true }); }
 
 function openPayment(drop) {
   _paymentCancelled = false; // reset on each new payment attempt
+  const cancelBtn = document.getElementById('btn-cancel');
+  if (cancelBtn) cancelBtn.style.display = ''; // always show cancel when opening payment
   currentDrop = drop; document.getElementById('payment-title').textContent = drop.title; document.getElementById('payment-price').textContent = 'PRICE: ' + (drop.currency && drop.currency !== 'USD' ? drop.currency + ' ' : '$') + drop.price;
   clearInterval(mpesaPollTimer); setPayTab('card');
   const pro = document.getElementById('pay-step-processing'); const crd = document.getElementById('pay-card-section'); const btn = document.getElementById('btn-pay-card');
@@ -2187,7 +2189,9 @@ document.getElementById('btn-cancel').addEventListener('click', () => {
 document.getElementById('btn-pay-card').addEventListener('click', async () => {
   if (!currentDrop || !stripeObj || !stripeCardEl) return;
   const btn = document.getElementById('btn-pay-card'); const err = document.getElementById('stripe-card-errors'); const proc = document.getElementById('pay-step-processing'); const sec = document.getElementById('pay-card-section');
+  const cancelBtn = document.getElementById('btn-cancel');
   btn.disabled = true; err.textContent = ''; sec.style.display = 'none'; proc.style.display = 'flex';
+  if (cancelBtn) cancelBtn.style.display = 'none'; // hide cancel — payment is final once started
   try {
     const iRes = await apiPost('/payment/intent', { creatorUsername: currentVaultCreator, dropId: String(currentDrop.id), amount: currentDrop.price, currency: currentDrop.currency || 'USD' });
     if (iRes.error) throw new Error(iRes.error);
@@ -2197,18 +2201,20 @@ document.getElementById('btn-pay-card').addEventListener('click', async () => {
     if (_paymentCancelled) return;
     grantAccess(currentDrop);
     apiPost('/payment/confirm', { intentId: paymentIntent.id, creatorUsername: currentVaultCreator, dropId: String(currentDrop.id), amount: currentDrop.price, currency: currentDrop.currency || 'USD', purchaseId: currentPurchaseId }).catch(() => {});
-  } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; err.textContent = e.message; btn.disabled = false; }
+  } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; err.textContent = e.message; btn.disabled = false; if (cancelBtn) cancelBtn.style.display = ''; }
 });
 
 document.getElementById('btn-pay-mpesa').addEventListener('click', async () => {
   const phone = document.getElementById('mpesa-phone').value.trim(); if (!phone) return;
   const btn = document.getElementById('btn-pay-mpesa'); const sec = document.getElementById('pay-mpesa-section'); const proc = document.getElementById('pay-step-processing'); const lbl = document.getElementById('pay-processing-label');
+  const cancelBtnM = document.getElementById('btn-cancel');
   btn.disabled = true; sec.style.display = 'none'; proc.style.display = 'flex'; lbl.textContent = 'WAITING FOR M-PESA PIN...';
+  if (cancelBtnM) cancelBtnM.style.display = 'none'; // hide cancel — M-Pesa prompt sent
   try {
     const res = await apiPost('/payment/mpesa', { phone, amount: currentDrop.price, creatorUsername: currentVaultCreator, dropId: String(currentDrop.id) });
     if (res.error) throw new Error(res.error);
     pollMpesa(res.checkoutRequestId);
-  } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; showToast(e.message, 'error'); btn.disabled = false; }
+  } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; showToast(e.message, 'error'); btn.disabled = false; if (cancelBtnM) cancelBtnM.style.display = ''; }
 });
 
 function pollMpesa(cid) {
