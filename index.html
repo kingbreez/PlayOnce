@@ -2154,6 +2154,7 @@ if (window.Stripe) { _preInitStripe(); }
 else { window.addEventListener('load', _preInitStripe, { once: true }); }
 
 function openPayment(drop) {
+  _paymentCancelled = false; // reset on each new payment attempt
   currentDrop = drop; document.getElementById('payment-title').textContent = drop.title; document.getElementById('payment-price').textContent = 'PRICE: ' + (drop.currency && drop.currency !== 'USD' ? drop.currency + ' ' : '$') + drop.price;
   clearInterval(mpesaPollTimer); setPayTab('card');
   const pro = document.getElementById('pay-step-processing'); const crd = document.getElementById('pay-card-section'); const btn = document.getElementById('btn-pay-card');
@@ -2169,8 +2170,13 @@ function setPayTab(t) {
   else { tc.style.background = 'none'; tc.style.color = 'var(--gray)'; tm.style.background = 'var(--green)'; tm.style.color = '#000'; sc.style.display = 'none'; sm.style.display = 'block'; }
 }
 
+let _paymentCancelled = false;
 document.getElementById('btn-cancel').addEventListener('click', () => {
+  _paymentCancelled = true;
   clearInterval(mpesaPollTimer);
+  // Hide processing spinner immediately
+  const proc = document.getElementById('pay-step-processing');
+  if (proc) proc.style.display = 'none';
   show('vault');
 });
 
@@ -2183,7 +2189,8 @@ document.getElementById('btn-pay-card').addEventListener('click', async () => {
     if (iRes.error) throw new Error(iRes.error);
     const { paymentIntent, error } = await stripeObj.confirmCardPayment(iRes.clientSecret, { payment_method: { card: stripeCardEl } });
     if (error) throw new Error(error.message);
-    // Grant access immediately — confirm in background (no need to block viewer)
+    // Only grant access if user has not cancelled
+    if (_paymentCancelled) return;
     grantAccess(currentDrop);
     apiPost('/payment/confirm', { intentId: paymentIntent.id, creatorUsername: currentVaultCreator, dropId: String(currentDrop.id), amount: currentDrop.price, currency: currentDrop.currency || 'USD', purchaseId: currentPurchaseId }).catch(() => {});
   } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; err.textContent = e.message; btn.disabled = false; }
@@ -2604,10 +2611,19 @@ document.getElementById('btn-player-exit').addEventListener('click', e => {
   }
   _destroyHls();
   currentNoVideo = false;
-  // Show vault immediately — don't wait for API fetch
+  // Reset video object-fit in case fullscreen changed it
+  const videoEl = document.getElementById('player-video');
+  if (videoEl) videoEl.style.objectFit = '';
+  // Exit native fullscreen if active
+  try { if (document.fullscreenElement || document.webkitFullscreenElement) { (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document); } } catch(e) {}
+  // Show vault immediately with cached data — no black screen
   show('vault');
-  // Refresh vault data silently in background
-  if (currentVaultCreator) openVault(currentVaultCreator);
+  if (currentVaultCreator) {
+    // Render cached vault instantly, then refresh in background
+    const cached = _loadVaultCache ? _loadVaultCache(currentVaultCreator) : null;
+    if (cached) _renderVault(cached);
+    openVault(currentVaultCreator);
+  }
 });
 
 document.getElementById('player-stage').addEventListener('click', e => {
@@ -2619,10 +2635,26 @@ document.getElementById('player-stage').addEventListener('click', e => {
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', function(e) {
-  e.stopPropagation(); showPlayerControls(); 
-  const video = document.getElementById('player-video'); const stage = document.getElementById('player-stage'); const isFS = !!(document.fullscreenElement||document.webkitFullscreenElement);
-  if (isFS) { (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); } 
-  else { if (video.webkitEnterFullscreen) { video.webkitEnterFullscreen(); } else if (stage.requestFullscreen) { stage.requestFullscreen(); } else if (stage.webkitRequestFullscreen) { stage.webkitRequestFullscreen(); } }
+  e.stopPropagation(); showPlayerControls();
+  const video = document.getElementById('player-video');
+  const stage = document.getElementById('player-stage');
+  const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if (isFS) {
+    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e) {}
+  } else {
+    // Try to lock landscape first (Android), then go fullscreen
+    const goFS = () => {
+      if (stage.requestFullscreen) stage.requestFullscreen();
+      else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
+      else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+    };
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').then(goFS).catch(goFS);
+    } else {
+      goFS();
+    }
+  }
 });
 ['fullscreenchange','webkitfullscreenchange'].forEach(ev => {
   document.addEventListener(ev, () => {
