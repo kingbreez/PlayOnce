@@ -2173,10 +2173,14 @@ function setPayTab(t) {
 let _paymentCancelled = false;
 document.getElementById('btn-cancel').addEventListener('click', () => {
   _paymentCancelled = true;
-  clearInterval(mpesaPollTimer);
-  // Hide processing spinner immediately
+  clearInterval(mpesaPollTimer); // stop M-Pesa polling
+  // Reset payment UI
   const proc = document.getElementById('pay-step-processing');
+  const sec  = document.getElementById('pay-card-section');
+  const btn  = document.getElementById('btn-pay-card');
   if (proc) proc.style.display = 'none';
+  if (sec)  sec.style.display  = 'block';
+  if (btn)  btn.disabled = false;
   show('vault');
 });
 
@@ -2219,6 +2223,7 @@ function pollMpesa(cid) {
 function cancelMpesa(m) { document.getElementById('pay-mpesa-section').style.display = 'block'; document.getElementById('pay-step-processing').style.display = 'none'; document.getElementById('btn-pay-mpesa').disabled = false; showToast(m, 'error'); }
 
 async function grantAccess(d) {
+  if (_paymentCancelled) return; // user cancelled — do not play
   showToast('Payment successful ✓');
   const pid = 'PUR_' + Date.now(); currentPurchaseId = pid;
   purchaseHistory.unshift({ id: pid, title: d.title, price: d.price, currency: d.currency || 'USD', dropId: String(d.id), creatorUsername: currentVaultCreator, earnedAt: Date.now(), date: new Date().toLocaleDateString(), playStatus: 'pending' });
@@ -2619,10 +2624,11 @@ document.getElementById('btn-player-exit').addEventListener('click', e => {
   // Show vault immediately with cached data — no black screen
   show('vault');
   if (currentVaultCreator) {
-    // Render cached vault instantly, then refresh in background
-    const cached = _loadVaultCache ? _loadVaultCache(currentVaultCreator) : null;
-    if (cached) _renderVault(cached);
-    openVault(currentVaultCreator);
+    // Render cached data instantly so vault is never blank
+    const cached = _loadVaultCache ? _loadVaultCache() : null;
+    if (cached) { try { _renderVault(cached); } catch(e) {} }
+    // Then refresh silently in background
+    setTimeout(() => { openVault(currentVaultCreator); }, 50);
   }
 });
 
