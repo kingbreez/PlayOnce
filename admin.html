@@ -568,13 +568,42 @@ function creatorRow(c){
   return `<div class="creator-row">
     <div class="creator-avatar" style="${avatarStyle}">${c.avatarUrl?'':initial}</div>
     <div class="creator-info">
-      <div class="creator-name">@${c.username}${c.verified?' ✓':''}</div>
-      <div class="creator-sub">${c.email||'no email'} · ${c.dropCount} drops · $${(c.grossRevenue||0).toFixed(2)} earned${c.pendingRefunds?' · '+c.pendingRefunds+' pending refunds':''}</div>
+      <div class="creator-name">@${c.username}${c.verified?' ✓':''}${c.featured?' <span style="color:var(--green);font-size:11px">★</span>':''}${c.founderCreator?' <span style="color:var(--amber);font-size:11px">⚡</span>':''}</div>
+      <div class="creator-sub">${c.email||'no email'} · ${c.dropCount} drops · $${(c.grossRevenue||0).toFixed(2)} earned${c.pendingRefunds?' · '+c.pendingRefunds+' pending refunds':''}${c.founderCreator?' · Founder (0% fee)':''}</div>
       <div class="strikes-dots">${dots}</div>
     </div>
     <div style="margin:0 8px">${statusPill}</div>
-    <div class="creator-actions">${!c.banned?`<button class="btn-sm" onclick="issueStrike('${c.username}','warning')">Warn</button><button class="btn-sm" onclick="issueStrike('${c.username}','freeze')">Freeze</button><button class="btn-sm" onclick="issueStrike('${c.username}','ban')">Ban</button>`:`<button class="btn-approve" onclick="unban('${c.username}')">Unban</button>`}</div>
+    <div class="creator-actions">
+      ${!c.banned?`<button class="btn-sm" onclick="issueStrike('${c.username}','warning')">Warn</button><button class="btn-sm" onclick="issueStrike('${c.username}','freeze')">Freeze</button><button class="btn-sm" onclick="issueStrike('${c.username}','ban')">Ban</button>`:`<button class="btn-approve" onclick="unban('${c.username}')">Unban</button>`}
+      <button class="btn-sm" style="background:none;border:1px solid ${c.featured?'var(--green)':'#333'};color:${c.featured?'var(--green)':'#666'}" onclick="setFeatured('${c.username}',${!c.featured})">${c.featured?'★ Unfeature':'☆ Feature'}</button>
+      <button class="btn-sm" style="background:none;border:1px solid ${c.founderCreator?'var(--amber)':'#333'};color:${c.founderCreator?'var(--amber)':'#666'}" onclick="setFounder('${c.username}',${!c.founderCreator})">${c.founderCreator?'⚡ Founder ON':'⚡ Founder'}</button>
+    </div>
   </div>`;
+}
+
+async function setFeatured(username, enable) {
+  showAdminConfirm('Are you sure you want to ' + (enable ? 'feature' : 'unfeature') + ' @' + username + '?', async () => {
+    try {
+      const data = await apiFetch('/admin/set-featured', { method: 'POST', body: JSON.stringify({ adminKey: KEY, creatorUsername: username, enabled: enable }) });
+      if (data.error) throw new Error(data.error);
+      showToast('@' + username + (enable ? ' is now featured ★' : ' unfeatured'));
+      loadCreators();
+    } catch(e) { showToast(e.message || 'Failed', true); }
+  });
+}
+
+async function setFounder(username, enable) {
+  const msg = enable
+    ? 'Grant founder mode to @' + username + '? They will pay 0% platform fee for 30 days.'
+    : 'Remove founder mode from @' + username + '? Normal 20% fee will apply immediately.';
+  showAdminConfirm(msg, async () => {
+    try {
+      const data = await apiFetch('/admin/set-founder', { method: 'POST', body: JSON.stringify({ adminKey: KEY, creatorUsername: username, enabled: enable }) });
+      if (data.error) throw new Error(data.error);
+      showToast('@' + username + (enable ? ' is now a Founder ⚡ — 0% fee for 30 days' : ' founder mode removed'));
+      loadCreators();
+    } catch(e) { showToast(e.message || 'Failed', true); }
+  });
 }
 
 async function issueStrike(username,action){
