@@ -82,7 +82,7 @@ body{background:var(--black);color:var(--white);font-family:var(--font);min-heig
 .play-bar.fail{border-color:var(--red);color:var(--red)}
 .play-bar.partial{border-color:var(--amber);color:var(--amber)}
 .play-bar.ok{border-color:var(--green);color:var(--green)}
-.creator-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.creator-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border);border-left:4px solid transparent;transition:background 200ms;}
 .creator-row:last-child{border-bottom:none}
 .creator-avatar{width:38px;height:38px;border-radius:50%;background:#111;border:1px solid #222;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0;overflow:hidden;background-size:cover;background-position:center}
 .creator-info{flex:1;min-width:0}
@@ -572,12 +572,12 @@ function creatorRow(c){
   const initial=(c.username||'?').charAt(0).toUpperCase();
   // Determine card border color based on status
   const borderStyle = c.founderCreator && c.featured
-    ? 'border-left:3px solid var(--amber);border-top:1px solid rgba(255,184,0,0.2);background:linear-gradient(90deg,rgba(255,184,0,0.04) 0%,transparent 60%)'
+    ? 'border-left:4px solid var(--amber);background:rgba(255,184,0,0.08);'
     : c.founderCreator
-    ? 'border-left:3px solid var(--amber);background:linear-gradient(90deg,rgba(255,184,0,0.04) 0%,transparent 60%)'
+    ? 'border-left:4px solid var(--amber);background:rgba(255,184,0,0.06);'
     : c.featured
-    ? 'border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(0,255,102,0.04) 0%,transparent 60%)'
-    : '';
+    ? 'border-left:4px solid var(--green);background:rgba(0,255,102,0.06);'
+    : 'border-left:4px solid transparent;';
 
   return `<div class="creator-row" style="${borderStyle}">
     <div class="creator-avatar" style="${avatarStyle}">${c.avatarUrl?'':initial}</div>
