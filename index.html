@@ -3447,7 +3447,8 @@ function updateEarnings(){
   // Handle label
   const hEl = document.getElementById('creator-handle-display');
   if (hEl) {
-    const founderActive = currentCreator.founderCreator && currentCreator.founderExpiresAt && Date.now() < currentCreator.founderExpiresAt;
+    // founderActive is set by the server — true if founder mode is active and not expired
+    const founderActive = currentCreator.founderActive === true;
     const founderBadgeHtml = founderActive
       ? '&nbsp;<span style="background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);color:var(--amber);font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 8px;vertical-align:middle">⚡ FOUNDER · 0% FEE</span>'
       : '';
