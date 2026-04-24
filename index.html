@@ -3446,7 +3446,13 @@ function updateEarnings(){
   const sEl = document.getElementById('stat-gross'); if (sEl) sEl.textContent = '$' + (gross || 0).toLocaleString();
   // Handle label
   const hEl = document.getElementById('creator-handle-display');
-  if (hEl) hEl.innerHTML = '@' + currentCreator.username + (currentCreator.verified ? '&nbsp;' + verifiedBadgeHTML(currentCreator,'sm') : '');
+  if (hEl) {
+    const founderActive = currentCreator.founderCreator && currentCreator.founderExpiresAt && Date.now() < currentCreator.founderExpiresAt;
+    const founderBadgeHtml = founderActive
+      ? '&nbsp;<span style="background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);color:var(--amber);font-size:9px;font-weight:700;letter-spacing:.1em;padding:3px 8px;vertical-align:middle">⚡ FOUNDER · 0% FEE</span>'
+      : '';
+    hEl.innerHTML = '@' + currentCreator.username + (currentCreator.verified ? '&nbsp;' + verifiedBadgeHTML(currentCreator,'sm') : '') + founderBadgeHtml;
+  }
   // Live drops summary
   const liveDrops = (currentCreator.creatorDrops||[]).filter(d => d.live && !isExpired(d.uploadedAt));
   const sumEl = document.getElementById('dash-drops-summary');
