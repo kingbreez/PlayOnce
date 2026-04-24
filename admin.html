@@ -208,6 +208,11 @@ body{background:var(--black);color:var(--white);font-family:var(--font);min-heig
 
     <div class="page" id="page-creators">
       <div class="page-title">Creators &amp; Strikes</div>
+      <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:var(--amber);border-radius:50%;display:inline-block"></span>Founder — 0% fee</span>
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:var(--green);border-radius:50%;display:inline-block"></span>Featured — shows first in search</span>
+        <span style="font-size:11px;color:#555;display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:linear-gradient(180deg,var(--amber) 50%,var(--green) 50%);border-radius:50%;display:inline-block"></span>Both</span>
+      </div>
       <div class="page-sub">Track violations · warn · freeze payouts · ban accounts.</div>
       <input type="text" class="search-bar" id="creator-search" placeholder="Search by username or email..." oninput="filterCreators(this.value)">
       <div id="creator-list"><div class="loading">Loading...</div></div>
@@ -565,7 +570,16 @@ function creatorRow(c){
   else if(c.strikeCount>0)statusPill=`<span class="pill pill-amber">${c.strikeCount} STRIKE${c.strikeCount>1?'S':''}</span>`;
   const avatarStyle=c.avatarUrl?`background-image:url(${c.avatarUrl});background-size:cover`:'';
   const initial=(c.username||'?').charAt(0).toUpperCase();
-  return `<div class="creator-row">
+  // Determine card border color based on status
+  const borderStyle = c.founderCreator && c.featured
+    ? 'border-left:3px solid var(--amber);border-top:1px solid rgba(255,184,0,0.2);background:linear-gradient(90deg,rgba(255,184,0,0.04) 0%,transparent 60%)'
+    : c.founderCreator
+    ? 'border-left:3px solid var(--amber);background:linear-gradient(90deg,rgba(255,184,0,0.04) 0%,transparent 60%)'
+    : c.featured
+    ? 'border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(0,255,102,0.04) 0%,transparent 60%)'
+    : '';
+
+  return `<div class="creator-row" style="${borderStyle}">
     <div class="creator-avatar" style="${avatarStyle}">${c.avatarUrl?'':initial}</div>
     <div class="creator-info">
       <div class="creator-name">@${c.username}${c.verified?' ✓':''}${c.featured?' <span style="color:var(--green);font-size:11px">★</span>':''}${c.founderCreator?' <span style="color:var(--amber);font-size:11px">⚡</span>':''}</div>
