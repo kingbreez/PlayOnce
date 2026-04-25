@@ -3269,8 +3269,12 @@ function _calcPayout() {
   let available = 0, pending = 0;
   const pendingItems = [];
 
+  // Check if creator is in founder mode — 0% fee, 100% payout
+  const founderActive = currentCreator.founderActive === true;
+  const creatorRate = founderActive ? 1.0 : 0.80;
+
   sales.forEach(s => {
-    const payout = +(s.amount * 0.80).toFixed(2);
+    const payout = +(s.amount * creatorRate).toFixed(2);
     const unlockAt = (s.earnedAt || 0) + PAYOUT_HOLD_MS;
     if (now >= unlockAt) {
       available += payout;
@@ -3282,14 +3286,13 @@ function _calcPayout() {
     }
   });
 
-  // Also include legacy grossRevenue that hasn't been migrated to sales[]
   // Legacy: if no sales[] yet, use grossRevenue with no hold (already earned)
   const legacyGross = currentCreator.grossRevenue || 0;
   if (legacyGross > 0 && sales.length === 0) {
-    available += +(legacyGross * 0.80).toFixed(2);
+    available += +(legacyGross * creatorRate).toFixed(2);
   }
 
-  return { available: +available.toFixed(2), pending: +pending.toFixed(2), pendingItems };
+  return { available: +available.toFixed(2), pending: +pending.toFixed(2), pendingItems, creatorRate };
 }
 
 function updateAlertBanner() {
@@ -3338,12 +3341,15 @@ function updateAlertBanner() {
 
 function updateEarnings(){
   if(!currentCreator)return;
-  const { available, pending } = _calcPayout();
+  const { available, pending, creatorRate } = _calcPayout();
+  const founderActive = currentCreator.founderActive === true;
+  const feeRate = founderActive ? 0 : 0.20;
+  const payoutPct = founderActive ? 100 : 80;
   const sales = currentCreator.sales || [];
   const gross = sales.length > 0
     ? +sales.reduce((s,x)=>s+x.amount,0).toFixed(2)
     : (currentCreator.grossRevenue || 0);
-  const fee = +(gross * 0.20).toFixed(2);
+  const fee = +(gross * feeRate).toFixed(2);
 
   const pEl = document.getElementById('bd-payout');
   if (pEl) {
@@ -3359,9 +3365,13 @@ function updateEarnings(){
     }
   }
   const lblEl = document.getElementById('dash-payout-lbl');
-  if (lblEl) lblEl.textContent = pending > 0 && available === 0 ? 'PENDING (UNLOCKS DAY 4)' : 'YOUR PAYOUT (80%)';
+  if (lblEl) {
+    if (pending > 0 && available === 0) lblEl.textContent = 'PENDING (UNLOCKS DAY 4)';
+    else if (founderActive) lblEl.textContent = 'YOUR PAYOUT (100% · FOUNDER)';
+    else lblEl.textContent = 'YOUR PAYOUT (80%)';
+  }
   const gEl = document.getElementById('bd-gross'); if (gEl) gEl.textContent = '$' + gross.toFixed(2);
-  const fEl = document.getElementById('bd-fee'); if (fEl) fEl.textContent = '$' + fee.toFixed(2);
+  const fEl = document.getElementById('bd-fee'); if (fEl) fEl.textContent = founderActive ? '$0.00 (Founder)' : '$' + fee.toFixed(2);
   const vEl = document.getElementById('stat-views'); if (vEl) vEl.textContent = currentCreator.paidViews || 0;
   const sEl = document.getElementById('stat-gross'); if (sEl) sEl.textContent = '$' + (gross || 0).toLocaleString();
   // Handle label
