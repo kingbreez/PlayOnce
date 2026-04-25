@@ -1069,25 +1069,10 @@
     <div class="pay-title" id="payment-title">—</div>
     <div class="pay-price" id="payment-price">PRICE: $—</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--gray-border);margin-bottom:18px">
-      <button id="tab-card" onclick="setPayTab('card')" style="font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:0.04em;padding:14px;border:none;background:var(--green);color:#000;cursor:pointer">💳 Card</button>
-      <button id="tab-mpesa" onclick="setPayTab('mpesa')" style="font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:0.04em;padding:14px;border:none;background:none;color:var(--gray);cursor:pointer">📱 M-Pesa</button>
-    </div>
-
     <div id="pay-card-section">
       <div id="stripe-card-element"></div>
       <div id="stripe-card-errors"></div>
       <button class="btn-fill" id="btn-pay-card">Pay with Card</button>
-    </div>
-
-    <div id="pay-mpesa-section" style="display:none">
-      <div style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.6">Enter your Safaricom number. You will receive a prompt on your phone to enter your M-Pesa PIN.</div>
-      <div class="field" style="margin-bottom:16px">
-        <label>PHONE NUMBER</label>
-        <input id="mpesa-phone" type="tel" placeholder="0712 345 678" autocomplete="tel">
-      </div>
-      <div id="mpesa-amount-display" style="font-size:12px;color:var(--gray);margin-bottom:16px"></div>
-      <button class="btn-fill" id="btn-pay-mpesa">Send M-Pesa Prompt</button>
     </div>
 
     <div id="pay-step-processing" style="display:none;flex-direction:column;align-items:center;gap:16px;padding:30px 0">
@@ -1095,7 +1080,7 @@
       <div id="pay-processing-label" style="font-size:11px;letter-spacing:0.25em;color:var(--gray)">PROCESSING...</div>
     </div>
 
-    <div class="pay-secure">SECURE · STRIPE &amp; SAFARICOM · ONE-TIME ACCESS</div>
+    <div class="pay-secure">SECURE · STRIPE · ONE-TIME ACCESS</div>
     <button class="btn-ghost" id="btn-cancel" style="align-self:center;margin-top:4px">cancel</button>
   </div>
 </div>
@@ -1518,6 +1503,7 @@
 </div></div></div>
 <div class="modal-overlay" id="modal-payout"><div class="modal-box"><div class="modal-head"><div class="modal-head-title">Payout Method</div><button class="modal-close" onclick="closeModal('modal-payout')">✕</button></div><div class="modal-body">
 
+
   <!-- Method picker — shown when nothing connected -->
   <div id="payout-method-picker" style="display:none">
     <div style="font-size:13px;color:#444;margin-bottom:16px">Choose how to receive your earnings.</div>
@@ -1527,14 +1513,6 @@
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:var(--white)">Stripe</div>
           <div style="font-size:12px;color:#444;margin-top:2px">Bank transfer · Worldwide</div>
-        </div>
-        <span style="color:#333;font-size:18px">›</span>
-      </button>
-      <button onclick="selectPayoutTab('mpesa')" style="font-family:var(--font);background:#080808;border:1px solid #1a1a1a;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left;width:100%;transition:background 100ms" onmouseover="this.style.background='#0f0f0f'" onmouseout="this.style.background='#080808'">
-        <span style="font-size:22px;flex-shrink:0">📱</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;color:var(--white)">M-Pesa</div>
-          <div style="font-size:12px;color:#444;margin-top:2px">Mobile money · East Africa</div>
         </div>
         <span style="color:#333;font-size:18px">›</span>
       </button>
@@ -1559,21 +1537,8 @@
     </div>
   </div>
 
-  <!-- M-Pesa section -->
-  <div id="payout-mpesa-section" style="display:none">
-    <button onclick="selectPayoutTab(null)" style="background:none;border:none;color:var(--gray);font-family:var(--font);font-size:12px;cursor:pointer;padding:0;margin-bottom:16px">← Back</button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:14px;background:#080808;border:1px solid var(--gray-border)">
-      <span style="font-size:24px">📱</span>
-      <div>
-        <div style="font-size:14px;font-weight:700;color:var(--white)">M-Pesa</div>
-        <div style="font-size:11px;color:#444">Mobile money · East Africa</div>
-      </div>
-    </div>
-    <div class="field" style="margin-bottom:14px"><label>M-PESA NUMBER</label><input type="tel" id="payout-mpesa-phone" placeholder="0712 345 678" autocomplete="tel"></div>
-    <div class="field" style="margin-bottom:4px"><label>FULL NAME</label><input type="text" id="payout-mpesa-name" placeholder="Your name" autocomplete="name"></div>
-    <div id="payout-mpesa-status" style="display:none;font-size:12px;margin:14px 0"></div>
-    <button class="btn-fill" style="margin-top:14px;padding:15px;font-size:14px;font-weight:700" onclick="saveMpesaPayout()">Save M-Pesa</button>
-  </div>
+  <!-- M-Pesa placeholder — hidden, kept for V2 -->
+  <div id="payout-mpesa-section" style="display:none"></div>
 
 </div></div></div>
 
@@ -2158,16 +2123,16 @@ function openPayment(drop) {
   const cancelBtn = document.getElementById('btn-cancel');
   if (cancelBtn) cancelBtn.style.display = ''; // always show cancel when opening payment
   currentDrop = drop; document.getElementById('payment-title').textContent = drop.title; document.getElementById('payment-price').textContent = 'PRICE: ' + (drop.currency && drop.currency !== 'USD' ? drop.currency + ' ' : '$') + drop.price;
-  clearInterval(mpesaPollTimer); setPayTab('card');
+  clearInterval(mpesaPollTimer);
   const pro = document.getElementById('pay-step-processing'); const crd = document.getElementById('pay-card-section'); const btn = document.getElementById('btn-pay-card');
   if (pro) pro.style.display = 'none'; if (crd) crd.style.display = 'block'; if (btn) { btn.disabled = false; btn.textContent = 'Pay with Card'; }
-  document.getElementById('stripe-card-errors').textContent = ''; document.getElementById('mpesa-phone').value = '';
-  const amt = document.getElementById('mpesa-amount-display'); if (amt) amt.textContent = 'Amount: ' + (drop.currency || 'KES') + ' ' + drop.price;
+  document.getElementById('stripe-card-errors').textContent = '';
+  
   show('payment'); requestAnimationFrame(() => initStripe());
 }
 
 function setPayTab(t) {
-  currentPayTab = t; const tc = document.getElementById('tab-card'); const tm = document.getElementById('tab-mpesa'); const sc = document.getElementById('pay-card-section'); const sm = document.getElementById('pay-mpesa-section');
+  currentPayTab = 'card'; const sc = document.getElementById('pay-card-section');
   if (t === 'card') { tc.style.background = 'var(--green)'; tc.style.color = '#000'; tm.style.background = 'none'; tm.style.color = 'var(--gray)'; sc.style.display = 'block'; sm.style.display = 'none'; } 
   else { tc.style.background = 'none'; tc.style.color = 'var(--gray)'; tm.style.background = 'var(--green)'; tm.style.color = '#000'; sc.style.display = 'none'; sm.style.display = 'block'; }
 }
@@ -2182,7 +2147,9 @@ document.getElementById('btn-cancel').addEventListener('click', () => {
   const btn  = document.getElementById('btn-pay-card');
   if (proc) proc.style.display = 'none';
   if (sec)  sec.style.display  = 'block';
-  if (btn)  btn.disabled = false;
+  if (btn)  { btn.disabled = false; btn.textContent = 'Pay with Card'; }
+  const cancelBtn = document.getElementById('btn-cancel');
+  if (cancelBtn) cancelBtn.style.display = '';
   show('vault');
 });
 
@@ -2204,29 +2171,6 @@ document.getElementById('btn-pay-card').addEventListener('click', async () => {
   } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; err.textContent = e.message; btn.disabled = false; if (cancelBtn) cancelBtn.style.display = ''; }
 });
 
-document.getElementById('btn-pay-mpesa').addEventListener('click', async () => {
-  const phone = document.getElementById('mpesa-phone').value.trim(); if (!phone) return;
-  const btn = document.getElementById('btn-pay-mpesa'); const sec = document.getElementById('pay-mpesa-section'); const proc = document.getElementById('pay-step-processing'); const lbl = document.getElementById('pay-processing-label');
-  const cancelBtnM = document.getElementById('btn-cancel');
-  btn.disabled = true; sec.style.display = 'none'; proc.style.display = 'flex'; lbl.textContent = 'WAITING FOR M-PESA PIN...';
-  if (cancelBtnM) cancelBtnM.style.display = 'none'; // hide cancel — M-Pesa prompt sent
-  try {
-    const res = await apiPost('/payment/mpesa', { phone, amount: currentDrop.price, creatorUsername: currentVaultCreator, dropId: String(currentDrop.id) });
-    if (res.error) throw new Error(res.error);
-    pollMpesa(res.checkoutRequestId);
-  } catch(e) { sec.style.display = 'block'; proc.style.display = 'none'; showToast(e.message, 'error'); btn.disabled = false; if (cancelBtnM) cancelBtnM.style.display = ''; }
-});
-
-function pollMpesa(cid) {
-  let att = 0; clearInterval(mpesaPollTimer);
-  mpesaPollTimer = setInterval(async () => {
-    att++; if (att > 15) { clearInterval(mpesaPollTimer); cancelMpesa('TIMED OUT'); return; }
-    const r = await apiGet(`/payment/mpesa-status?checkoutRequestId=${cid}&creatorUsername=${encodeURIComponent(currentVaultCreator)}&dropId=${currentDrop.id}&amount=${currentDrop.price}`);
-    if (r && r.status === 'success') { clearInterval(mpesaPollTimer); grantAccess(currentDrop); } 
-    else if (r && (r.status === 'cancelled' || r.status === 'timeout' || r.error)) { clearInterval(mpesaPollTimer); cancelMpesa(r.status === 'cancelled' ? 'CANCELLED' : 'FAILED'); }
-  }, 4000);
-}
-function cancelMpesa(m) { document.getElementById('pay-mpesa-section').style.display = 'block'; document.getElementById('pay-step-processing').style.display = 'none'; document.getElementById('btn-pay-mpesa').disabled = false; showToast(m, 'error'); }
 
 async function grantAccess(d) {
   if (_paymentCancelled) return; // user cancelled — do not play
@@ -3065,7 +3009,7 @@ function openPayoutModal() {
   if (currentCreator.stripeAccountId) {
     selectPayoutTab('stripe');
   } else if (currentCreator.payoutMpesa) {
-    selectPayoutTab('mpesa');
+    selectPayoutTab('stripe'); // mpesa removed — only stripe
   } else {
     selectPayoutTab(null);
   }
@@ -3075,11 +3019,9 @@ function openPayoutModal() {
 function selectPayoutTab(tab) {
   const picker = document.getElementById('payout-method-picker');
   const stripe = document.getElementById('payout-stripe-section');
-  const mpesa  = document.getElementById('payout-mpesa-section');
   const title  = document.querySelector('#modal-payout .modal-head-title');
   if (picker) picker.style.display = 'none';
   if (stripe) stripe.style.display = 'none';
-  if (mpesa)  mpesa.style.display  = 'none';
 
   if (!tab) {
     if (picker) picker.style.display = 'block';
@@ -3098,17 +3040,6 @@ function selectPayoutTab(tab) {
       if (st)  st.style.display = 'none';
       if (btn) btn.textContent = 'Connect Stripe Account';
       if (rec) rec.style.display = 'none';
-    }
-  } else if (tab === 'mpesa') {
-    if (mpesa) mpesa.style.display = 'block';
-    if (title) title.textContent = 'M-Pesa Payout';
-    if (currentCreator.payoutMpesa) {
-      const ph = document.getElementById('payout-mpesa-phone');
-      const nm = document.getElementById('payout-mpesa-name');
-      if (ph) ph.value = currentCreator.payoutMpesa.phone || '';
-      if (nm) nm.value = currentCreator.payoutMpesa.name  || '';
-      const st = document.getElementById('payout-mpesa-status');
-      if (st) { st.style.display = 'block'; st.style.color = 'var(--green)'; st.textContent = '✓ M-Pesa connected — update details below if needed'; }
     }
   }
 }
@@ -3156,19 +3087,6 @@ async function connectStripeFromModal() {
   } catch(e) { showToast('Connection error', 'error'); if (btn) { btn.textContent = 'Connect Stripe'; btn.disabled = false; } }
 }
 
-async function saveMpesaPayout() {
-  if (!currentCreator) return;
-  const phone = document.getElementById('payout-mpesa-phone')?.value.trim();
-  const name  = document.getElementById('payout-mpesa-name')?.value.trim();
-  const st    = document.getElementById('payout-mpesa-status');
-  if (!phone || !name) { showToast('Enter phone and name', 'error'); return; }
-  currentCreator.payoutMpesa = { phone, name };
-  await saveCreators();
-  if (st) { st.style.display = 'block'; st.style.color = 'var(--green)'; st.textContent = '✓ M-Pesa saved'; }
-  updatePayoutStatusBar();
-  showToast('M-Pesa payout saved');
-  setTimeout(() => closeModal('modal-payout'), 1200);
-}
 // ════════════════════════════════════════════
 // CREATOR DASHBOARD
 // ════════════════════════════════════════════
@@ -3220,9 +3138,9 @@ function updatePayoutStatusBar() {
     if (bar) bar.onclick = openPayoutModal;
 
   } else if (currentCreator.payoutMpesa) {
-    label.textContent = '✓ M-Pesa connected';
+    label.textContent = '✓ Payout connected';
     label.style.color = 'var(--green)';
-    if (sub) { sub.textContent = currentCreator.payoutMpesa.phone || 'Payouts go to M-Pesa'; sub.style.color = '#444'; }
+    if (sub) { sub.textContent = 'Payouts connected'; sub.style.color = '#444'; }
     if (icon) { icon.textContent = '📱'; icon.style.borderColor = 'rgba(0,255,102,0.3)'; icon.style.background = 'rgba(0,255,102,0.06)'; }
     if (action) { action.textContent = 'EDIT →'; action.style.color = 'var(--gray)'; }
     if (bar) bar.onclick = openPayoutModal;
@@ -3230,7 +3148,7 @@ function updatePayoutStatusBar() {
   } else {
     label.textContent = 'Set up payout account';
     label.style.color = '#555';
-    if (sub) { sub.textContent = 'Stripe or M-Pesa · tap to set up'; sub.style.color = '#2a2a2a'; }
+    if (sub) { sub.textContent = 'Stripe · tap to set up'; sub.style.color = '#2a2a2a'; }
     if (icon) { icon.textContent = '💳'; icon.style.borderColor = '#222'; icon.style.background = '#111'; }
     if (action) { action.textContent = 'CONNECT →'; action.style.color = 'var(--green)'; }
     if (bar) bar.onclick = openPayoutModal;
@@ -3754,7 +3672,7 @@ async function openSettingsPage(page, prefill) {
     bodyEl.innerHTML = `
 <div style="margin-bottom:24px">
   <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px">Privacy Policy</div>
-  <p style="margin-bottom:10px">PlayOnce collects your username, email, and payment information to operate the platform. We do not sell your personal data to third parties. Payments are processed by Stripe and M-Pesa — we never store card details. You may request deletion of your data at any time via Settings.</p>
+  <p style="margin-bottom:10px">PlayOnce collects your username, email, and payment information to operate the platform. We do not sell your personal data to third parties. Payments are processed by Stripe — we never store card details. You may request deletion of your data at any time via Settings.</p>
 </div>
 <div style="margin-bottom:24px">
   <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px">Terms of Use</div>
