@@ -1309,6 +1309,9 @@
         <button class="btn-sec" id="btn-open-content-manager" onclick="renderContentManager();show('content-manager')">Content Manager</button>
         <button class="btn-sec" onclick="openAnalytics()">Analytics</button>
         <button class="btn-sec" id="btn-withdraw" onclick="openWithdrawModal()">Withdraw</button>
+        <button class="btn-sec" id="btn-share-profile" onclick="shareCreatorProfile()" style="grid-column:1/-1;border-color:var(--green);color:var(--green)">
+          ↗ Share My PlayOnce Link
+        </button>
         <button class="btn-sec" id="btn-verify-account" onclick="openVerifyModal()" style="grid-column:1/-1">
           <span id="verify-btn-label"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="display:inline-block;vertical-align:middle;margin-right:5px"><circle cx="10" cy="10" r="10" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Get Verified</span>
         </button>
@@ -1568,7 +1571,7 @@ const SUPPORT_EMAIL = 'support@playonce.app';
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 // IMPORTANT: REPLACE THIS KEY IN PRODUCTION
-const STRIPE_PK = 'pk_live_51TIbbTAFeIMJfcgbls8PeU5bnut0mHNIwarpW6KNkGmdGc5CtdxVHYhpUGVOQNQJFqqJ1HJKDMpM0NRYa9H1mGCi00spf9DBXE';
+const STRIPE_PK = 'pk_live_51TIbboApaxUbmPUS_REPLACE_WITH_YOUR_FULL_LIVE_KEY';
 
 let registeredCreators = []; const _avatarPreloadCache = new Set(); let currentCreator = null; let authMode = 'login'; let currentDrop = null; let currentVaultCreator = null;
 let currentRefundTarget = null; let selectedReason = null; let playerTimer = null; let tokenInterval = null; let tokenSeconds = 0;
@@ -1751,18 +1754,19 @@ function _setPulse(on) { if (searchPulse) { if (on) searchPulse.classList.add('a
 function _buildDropdownItem(c, isStub) {
   const item = document.createElement('div'); item.className = 'dropdown-item';
 
-  // Avatar — photo if available, else first letter
+  // Avatar — img tag for instant load (no CSS background-image delay)
   const initial = (c.username || '?').charAt(0).toUpperCase();
-  // Preload avatar — append cache-hit param so browser uses cached version
-  const avatarStyle = c.avatarUrl
-    ? `background-image:url(${c.avatarUrl});background-size:cover;background-position:center`
-    : '';
-  // Preload avatar image so it's in cache for instant display
-  if (c.avatarUrl && !_avatarPreloadCache.has(c.avatarUrl)) {
-    _avatarPreloadCache.add(c.avatarUrl);
-    const img = new Image(); img.src = c.avatarUrl;
+  let avatarHtml;
+  if (c.avatarUrl) {
+    // Preload into cache
+    if (!_avatarPreloadCache.has(c.avatarUrl)) {
+      _avatarPreloadCache.add(c.avatarUrl);
+      const img = new Image(); img.src = c.avatarUrl;
+    }
+    avatarHtml = `<div class="dd-avatar" style="overflow:hidden;padding:0"><img src="${c.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager" decoding="sync" onerror="this.parentElement.textContent='${initial}';this.parentElement.style.background='#1a1a1a'"></div>`;
+  } else {
+    avatarHtml = `<div class="dd-avatar">${initial}</div>`;
   }
-  const avatarContent = c.avatarUrl ? '' : initial;
 
   // Name row
   const nameHtml = c.displayName
@@ -1785,7 +1789,7 @@ function _buildDropdownItem(c, isStub) {
   }
 
   item.innerHTML = `
-    <div class="dd-avatar" style="${avatarStyle}">${avatarContent}</div>
+    ${avatarHtml}
     <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
         ${nameHtml}${verifiedBadgeHTML(c,'sm')}${handleHtml}
@@ -3924,6 +3928,35 @@ async function submitGeneralReport(type) {
 // ════════════════════════════════════════════
 // CREATOR ANALYTICS
 // ════════════════════════════════════════════
+function shareCreatorProfile() {
+  if (!currentCreator) return;
+  const url = 'https://playonce.app/@' + currentCreator.username;
+  const text = 'Watch my exclusive drops on PlayOnce — ' + url;
+
+  // Use native share on mobile if available
+  if (navigator.share) {
+    navigator.share({ title: 'PlayOnce — @' + currentCreator.username, text, url })
+      .catch(() => {});
+    return;
+  }
+
+  // Fallback — copy to clipboard
+  try {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied — playonce.app/@' + currentCreator.username);
+    });
+  } catch(e) {
+    // Final fallback
+    const el = document.createElement('textarea');
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('Link copied — playonce.app/@' + currentCreator.username);
+  }
+}
+
 function openAnalytics() {
   if (!currentCreator) return;
   const body = document.getElementById('analytics-body');
@@ -4825,6 +4858,15 @@ function _clearBlack() { if (!_antiCaptureActive) return; if (_blackOverlay) _bl
 restoreFilesFromDB().then(() => {
   const hash = window.location.hash;
   if (hash === '#creator') { document.querySelector('.creator-login-link').click(); return; }
+
+  // Handle direct vault links — playonce.app/@username
+  const pathMatch = window.location.pathname.match(/^\/@([a-zA-Z0-9_]+)$/);
+  if (pathMatch) {
+    const username = pathMatch[1];
+    window.history.replaceState({}, document.title, '/');
+    setTimeout(() => openVault(username), 300);
+    return;
+  }
 
   // Handle Stripe/verify callback URL params
   const params = new URLSearchParams(window.location.search);
