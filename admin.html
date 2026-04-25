@@ -146,12 +146,12 @@ body{background:var(--black);color:var(--white);font-family:var(--font);min-heig
       <div class="page-title">Overview</div>
       <div class="page-sub" id="overview-updated">Loading...</div>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num green" id="ov-revenue">—</div><div class="stat-lbl">TOTAL REVENUE</div></div>
+        <div class="stat-card"><div class="stat-num green" id="ov-revenue">—</div><div class="stat-lbl">GROSS REVENUE</div></div>
+        <div class="stat-card"><div class="stat-num green" id="ov-platform">—</div><div class="stat-lbl">PLATFORM EARNINGS (20%)</div></div>
         <div class="stat-card"><div class="stat-num" id="ov-views">—</div><div class="stat-lbl">PAID VIEWS</div></div>
         <div class="stat-card"><div class="stat-num amber" id="ov-pending">—</div><div class="stat-lbl">PENDING PAYOUTS</div></div>
         <div class="stat-card"><div class="stat-num" id="ov-creators">—</div><div class="stat-lbl">CREATORS</div></div>
-        <div class="stat-card"><div class="stat-num" id="ov-drops">—</div><div class="stat-lbl">TOTAL DROPS</div></div>
-        <div class="stat-card"><div class="stat-num amber" id="ov-refunds">—</div><div class="stat-lbl">TOTAL REFUNDS</div></div>
+        <div class="stat-card"><div class="stat-num" id="ov-drops">—</div><div class="stat-lbl">LIVE DROPS NOW</div></div>
         <div class="stat-card"><div class="stat-num red" id="ov-banned">—</div><div class="stat-lbl">BANNED ACCOUNTS</div></div>
         <div class="stat-card"><div class="stat-num amber" id="ov-frozen">—</div><div class="stat-lbl">FROZEN PAYOUTS</div></div>
       </div>
@@ -323,11 +323,11 @@ async function loadOverview(){
       apiFetch('/admin/refund-queue?key='+encodeURIComponent(KEY))
     ]);
     document.getElementById('ov-revenue').textContent='$'+(analytics.totalRevenue||0).toFixed(2);
+    document.getElementById('ov-platform').textContent='$'+(analytics.platformEarnings||0).toFixed(2);
     document.getElementById('ov-views').textContent=analytics.totalViews||0;
     document.getElementById('ov-pending').textContent='$'+(analytics.pendingPayouts||0).toFixed(2);
     document.getElementById('ov-creators').textContent=analytics.creatorCount||0;
-    document.getElementById('ov-drops').textContent=analytics.totalDrops||0;
-    document.getElementById('ov-refunds').textContent=analytics.totalRefunds||0;
+    document.getElementById('ov-drops').textContent=analytics.activeDrops||0;
     document.getElementById('ov-banned').textContent=analytics.bannedCount||0;
     document.getElementById('ov-frozen').textContent=analytics.frozenCount||0;
     document.getElementById('overview-updated').textContent='Last updated '+new Date().toLocaleTimeString();
