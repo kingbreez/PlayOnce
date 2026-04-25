@@ -653,9 +653,11 @@ async function loadAnalytics(){
     el.innerHTML=`
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-num green">$${(data.totalRevenue||0).toFixed(2)}</div><div class="stat-lbl">GROSS REVENUE</div></div>
+        <div class="stat-card"><div class="stat-num green">$${(data.platformEarnings||0).toFixed(2)}</div><div class="stat-lbl">PLATFORM EARNINGS (20%)</div></div>
         <div class="stat-card"><div class="stat-num">${data.totalViews||0}</div><div class="stat-lbl">PAID VIEWS</div></div>
         <div class="stat-card"><div class="stat-num">${data.creatorCount||0}</div><div class="stat-lbl">CREATORS</div></div>
-        <div class="stat-card"><div class="stat-num">${data.totalDrops||0}</div><div class="stat-lbl">TOTAL DROPS</div></div>
+        <div class="stat-card"><div class="stat-num">${data.activeDrops||0}</div><div class="stat-lbl">LIVE DROPS NOW</div></div>
+        <div class="stat-card"><div class="stat-num">${data.totalDrops||0}</div><div class="stat-lbl">ALL DROPS (INCL. EXPIRED)</div></div>
         <div class="stat-card"><div class="stat-num amber">$${(data.pendingPayouts||0).toFixed(2)}</div><div class="stat-lbl">PENDING PAYOUTS (HELD)</div></div>
         <div class="stat-card"><div class="stat-num amber">${data.totalRefunds||0}</div><div class="stat-lbl">TOTAL REFUNDS</div></div>
         <div class="stat-card"><div class="stat-num red">${data.bannedCount||0}</div><div class="stat-lbl">BANNED</div></div>
