@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<title>PlayOnce</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ctext x='1' y='24' font-family='Arial Black,sans-serif' font-size='18' font-weight='900' fill='white'%3EP%3C/text%3E%3Ctext x='16' y='24' font-family='Arial Black,sans-serif' font-size='18' font-weight='900' fill='%2300FF66'%3EO%3C/text%3E%3C/svg%3E">
+<title>PlayOnce™ — Exclusive drops. Watch once. Gone in 3 days.</title>
+<meta name="description" content="PlayOnce is where creators premiere exclusive content. Fans pay once to unlock it. Gone in 3 days.">
+
+<!-- Favicon — hosted file so Google can index it -->
+<link rel="icon" type="image/svg+xml" href="/icon-192.svg">
+<link rel="shortcut icon" href="/icon-192.svg">
 <link rel="apple-touch-icon" href="/icon-192.svg">
 
 <!-- PWA -->
@@ -16,21 +20,33 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PlayOnce">
 
-<!-- Open Graph / Social sharing -->
+<!-- Open Graph — Google, Facebook, WhatsApp preview -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="PlayOnce™">
-<meta property="og:description" content="Exclusive drops. Watch once. Gone in 3 days.">
+<meta property="og:title" content="PlayOnce™ — Exclusive drops. Watch once.">
+<meta property="og:description" content="Where creators premiere exclusive content. Fans pay once to unlock. Gone in 3 days.">
 <meta property="og:url" content="https://playonce.app">
+<meta property="og:image" content="https://playonce.app/icon-512.svg">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:site_name" content="PlayOnce">
+
+<!-- Twitter/X card -->
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="PlayOnce™">
-<meta name="twitter:description" content="Exclusive drops. Watch once. Gone in 3 days.">
+<meta name="twitter:title" content="PlayOnce™ — Exclusive drops. Watch once.">
+<meta name="twitter:description" content="Where creators premiere exclusive content. Fans pay once to unlock. Gone in 3 days.">
+<meta name="twitter:image" content="https://playonce.app/icon-512.svg">
+
+<!-- Preconnect to critical domains for instant load -->
 <link rel="preconnect" href="https://ek96lj4uec.execute-api.eu-west-1.amazonaws.com">
 <link rel="dns-prefetch" href="https://ek96lj4uec.execute-api.eu-west-1.amazonaws.com">
 <link rel="preconnect" href="https://dvy39dvzad781.cloudfront.net" crossorigin>
 <link rel="preconnect" href="https://js.stripe.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Fonts — preload for instant render -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
 // Pre-paint: add .active to the correct screen before first paint — zero flash, zero conflict.
@@ -48,7 +64,7 @@
 })();
 </script>
 <script src="https://js.stripe.com/v3/" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js" defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
