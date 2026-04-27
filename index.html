@@ -3954,7 +3954,7 @@ async function submitGeneralReport(type) {
 // ════════════════════════════════════════════
 function shareCreatorProfile() {
   if (!currentCreator) return;
-  const url = 'https://playonce.app/@' + currentCreator.username;
+  const url = 'https://playonce.app/#@' + currentCreator.username;
   const text = 'Watch my exclusive drops on PlayOnce — ' + url;
 
   // Use native share on mobile if available
@@ -3967,7 +3967,7 @@ function shareCreatorProfile() {
   // Fallback — copy to clipboard
   try {
     navigator.clipboard.writeText(url).then(() => {
-      showToast('Link copied — playonce.app/@' + currentCreator.username);
+      showToast('Link copied — share it with your fans ✓');
     });
   } catch(e) {
     // Final fallback
@@ -3977,7 +3977,7 @@ function shareCreatorProfile() {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    showToast('Link copied — playonce.app/@' + currentCreator.username);
+    showToast('Link copied — share it with your fans ✓');
   }
 }
 
@@ -4883,12 +4883,22 @@ restoreFilesFromDB().then(() => {
   const hash = window.location.hash;
   if (hash === '#creator') { document.querySelector('.creator-login-link').click(); return; }
 
-  // Handle direct vault links — playonce.app/@username
+  // Handle direct vault links — playonce.app/#@username (hash routing — works on all platforms)
+  if (hash && hash.startsWith('#@')) {
+    const username = hash.slice(2); // remove #@
+    if (username) {
+      window.history.replaceState({}, document.title, '/');
+      setTimeout(() => openVault(username), 400);
+      return;
+    }
+  }
+
+  // Also handle path routing — playonce.app/@username (fallback)
   const pathMatch = window.location.pathname.match(/^\/@([a-zA-Z0-9_]+)$/);
   if (pathMatch) {
     const username = pathMatch[1];
     window.history.replaceState({}, document.title, '/');
-    setTimeout(() => openVault(username), 300);
+    setTimeout(() => openVault(username), 400);
     return;
   }
 
