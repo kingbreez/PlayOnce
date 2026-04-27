@@ -4883,12 +4883,21 @@ restoreFilesFromDB().then(() => {
   const hash = window.location.hash;
   if (hash === '#creator') { document.querySelector('.creator-login-link').click(); return; }
 
-  // Handle direct vault links — playonce.app/#@username (hash routing — works on all platforms)
+  // Handle direct vault links — playonce.app/#@username
   if (hash && hash.startsWith('#@')) {
-    const username = hash.slice(2); // remove #@
+    const username = hash.slice(2).trim();
     if (username) {
       window.history.replaceState({}, document.title, '/');
-      setTimeout(() => openVault(username), 400);
+      show('search'); // show search screen first so vault has somewhere to go back to
+      // Wait for app to fully initialize then open vault
+      const tryOpen = (attempts) => {
+        if (typeof openVault === 'function') {
+          setTimeout(() => openVault(username), 300);
+        } else if (attempts > 0) {
+          setTimeout(() => tryOpen(attempts - 1), 200);
+        }
+      };
+      setTimeout(() => tryOpen(10), 500);
       return;
     }
   }
@@ -4898,7 +4907,8 @@ restoreFilesFromDB().then(() => {
   if (pathMatch) {
     const username = pathMatch[1];
     window.history.replaceState({}, document.title, '/');
-    setTimeout(() => openVault(username), 400);
+    show('search');
+    setTimeout(() => openVault(username), 800);
     return;
   }
 
