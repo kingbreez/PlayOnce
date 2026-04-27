@@ -49,6 +49,17 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
+// Pre-boot: detect vault link before app loads — store target for instant open
+(function() {
+  var hash = window.location.hash;
+  if (hash && hash.startsWith('#@')) {
+    window.__vaultTarget = hash.slice(2).trim();
+    // Clear hash so app does not get confused
+    window.history.replaceState({}, document.title, '/');
+  }
+})();
+</script>
+<script>
 // Pre-paint: add .active to the correct screen before first paint — zero flash, zero conflict.
 (function() {
   try {
@@ -4883,23 +4894,13 @@ restoreFilesFromDB().then(() => {
   const hash = window.location.hash;
   if (hash === '#creator') { document.querySelector('.creator-login-link').click(); return; }
 
-  // Handle direct vault links — playonce.app/#@username
-  if (hash && hash.startsWith('#@')) {
-    const username = hash.slice(2).trim();
-    if (username) {
-      window.history.replaceState({}, document.title, '/');
-      show('search'); // show search screen first so vault has somewhere to go back to
-      // Wait for app to fully initialize then open vault
-      const tryOpen = (attempts) => {
-        if (typeof openVault === 'function') {
-          setTimeout(() => openVault(username), 300);
-        } else if (attempts > 0) {
-          setTimeout(() => tryOpen(attempts - 1), 200);
-        }
-      };
-      setTimeout(() => tryOpen(10), 500);
-      return;
-    }
+  // Handle direct vault links — use pre-boot target if set, or read hash
+  const vaultTarget = window.__vaultTarget || (hash && hash.startsWith('#@') ? hash.slice(2).trim() : null);
+  if (vaultTarget) {
+    window.__vaultTarget = null;
+    show('search');
+    openVault(vaultTarget); // call immediately — openVault has its own instant cache render
+    return;
   }
 
   // Also handle path routing — playonce.app/@username (fallback)
@@ -4908,7 +4909,7 @@ restoreFilesFromDB().then(() => {
     const username = pathMatch[1];
     window.history.replaceState({}, document.title, '/');
     show('search');
-    setTimeout(() => openVault(username), 800);
+    openVault(username);
     return;
   }
 
