@@ -49,8 +49,137 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
+// Legal page router — intercept /terms /privacy /refunds before app boots
+(function() {
+  var path = window.location.pathname.replace(/\/$/, '');
+  var pages = {
+    '/terms': {
+      title: 'Terms of Service — PlayOnce',
+      heading: 'Terms of Service',
+      updated: 'Last updated: April 2026',
+      body: `
+        <h2>1. Acceptance</h2>
+        <p>By using PlayOnce ("the Platform") you agree to these Terms. If you do not agree, do not use the Platform.</p>
+
+        <h2>2. What PlayOnce Does</h2>
+        <p>PlayOnce is a digital content platform that allows creators to sell time-limited exclusive content to fans. Fans pay a one-time fee to unlock content for a 72-hour window. After 72 hours the content expires and is no longer accessible.</p>
+
+        <h2>3. Creator Accounts</h2>
+        <p>Creators must be at least 18 years old. Creators are responsible for ensuring they own all rights to content they upload. PlayOnce takes a 20% platform fee on all transactions. Payouts are processed via Stripe Connect after a 7-day holding period.</p>
+
+        <h2>4. Viewer Purchases</h2>
+        <p>All purchases are final. When you unlock a drop you are purchasing a 72-hour digital license to view that content. Once the 72-hour window expires your access ends. See our Refund Policy for exceptions.</p>
+
+        <h2>5. Prohibited Content</h2>
+        <p>The following content is strictly prohibited on PlayOnce: adult or sexually explicit material, content depicting minors, content that promotes violence or hate, content that infringes third-party intellectual property, and any content that violates applicable law.</p>
+
+        <h2>6. Intellectual Property</h2>
+        <p>Creators retain full ownership of their content. By uploading content to PlayOnce, creators grant PlayOnce a limited license to host and deliver that content to paying viewers.</p>
+
+        <h2>7. Limitation of Liability</h2>
+        <p>PlayOnce is provided "as is." We are not liable for any indirect, incidental, or consequential damages arising from your use of the Platform. Our total liability is limited to the amount you paid us in the 30 days prior to the claim.</p>
+
+        <h2>8. Termination</h2>
+        <p>We may suspend or terminate accounts that violate these Terms at any time without notice. Creators whose accounts are terminated forfeit any pending payouts if termination is due to policy violations.</p>
+
+        <h2>9. Changes to Terms</h2>
+        <p>We may update these Terms from time to time. Continued use of the Platform after changes are posted constitutes acceptance of the updated Terms.</p>
+
+        <h2>10. Contact</h2>
+        <p>For questions about these Terms contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
+      `
+    },
+    '/privacy': {
+      title: 'Privacy Policy — PlayOnce',
+      heading: 'Privacy Policy',
+      updated: 'Last updated: April 2026',
+      body: `
+        <h2>1. Information We Collect</h2>
+        <p>We collect information you provide when creating an account (email address, username), payment information processed by Stripe (we do not store card details), content you upload as a creator, and usage data such as which drops you view.</p>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use your information to operate the Platform, process payments, send transactional emails (purchase confirmations, payout notifications), and improve our service. We do not sell your personal data to third parties.</p>
+
+        <h2>3. Payment Data</h2>
+        <p>All payment processing is handled by Stripe and Paddle. PlayOnce does not store credit card numbers or bank account details. Please review Stripe's and Paddle's privacy policies for how they handle payment data.</p>
+
+        <h2>4. Data Sharing</h2>
+        <p>We share data with: Stripe and Paddle for payment processing, Amazon Web Services for content hosting and delivery, and law enforcement when required by law. We do not share your data with advertisers.</p>
+
+        <h2>5. Data Retention</h2>
+        <p>We retain your account data for as long as your account is active. Expired drop content is deleted from our servers after 72 hours. You may request deletion of your account and associated data at any time.</p>
+
+        <h2>6. Cookies</h2>
+        <p>We use essential cookies to keep you logged in and remember your session. We do not use advertising or tracking cookies.</p>
+
+        <h2>7. Your Rights</h2>
+        <p>You have the right to access, correct, or delete your personal data. To exercise these rights contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
+
+        <h2>8. Contact</h2>
+        <p>For privacy questions contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
+      `
+    },
+    '/refunds': {
+      title: 'Refund Policy — PlayOnce',
+      heading: 'Refund Policy',
+      updated: 'Last updated: April 2026',
+      body: `
+        <h2>Our Policy</h2>
+        <p>All purchases on PlayOnce are final. When you pay to unlock a drop you are purchasing immediate access to digital content. Because access is granted instantly, we generally do not offer refunds.</p>
+
+        <h2>Exceptions</h2>
+        <p>We will issue a full refund in the following circumstances:</p>
+        <ul>
+          <li>The content you purchased was unavailable or failed to load due to a technical error on our end</li>
+          <li>You were charged more than once for the same drop</li>
+          <li>The content you received was materially different from what was described</li>
+        </ul>
+
+        <h2>How to Request a Refund</h2>
+        <p>To request a refund, contact us within 48 hours of your purchase at <a href="mailto:support@playonce.app">support@playonce.app</a> with your purchase details and the reason for your request. We will respond within 2 business days.</p>
+
+        <h2>Processing</h2>
+        <p>Approved refunds are returned to your original payment method. Processing typically takes 5–10 business days depending on your bank or card provider.</p>
+
+        <h2>Contact</h2>
+        <p>For refund questions contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
+      `
+    }
+  };
+
+  var page = pages[path];
+  if (!page) return;
+
+  // Render legal page and stop app from loading
+  document.addEventListener('DOMContentLoaded', function() {
+    document.title = page.title;
+    document.body.innerHTML = '';
+    document.body.style.cssText = 'background:#000;color:#fff;font-family:"DM Sans",sans-serif;min-height:100vh;padding:0;margin:0';
+    document.body.innerHTML =
+      '<div style="max-width:720px;margin:0 auto;padding:60px 24px 100px">' +
+        '<a href="/" style="display:inline-flex;align-items:center;gap:6px;color:#555;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.06em;margin-bottom:48px">← PLAYONCE</a>' +
+        '<h1 style="font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-.02em">' + page.heading + '</h1>' +
+        '<p style="color:#444;font-size:13px;margin-bottom:48px">' + page.updated + '</p>' +
+        '<div id="legal-body">' + page.body + '</div>' +
+      '</div>' +
+      '<style>' +
+        '#legal-body h2{font-size:15px;font-weight:700;color:#fff;margin:36px 0 10px;letter-spacing:.02em}' +
+        '#legal-body p{font-size:14px;line-height:1.75;color:#888;margin-bottom:16px}' +
+        '#legal-body ul{margin:0 0 16px 20px;padding:0}' +
+        '#legal-body li{font-size:14px;line-height:1.75;color:#888;margin-bottom:6px}' +
+        '#legal-body a{color:#00FF66;text-decoration:none}' +
+        '#legal-body a:hover{text-decoration:underline}' +
+      '</style>';
+  });
+
+  // Block all other scripts from running
+  window.__legalPage = true;
+})();
+</script>
+<script>
 // Pre-boot: detect vault link before app loads — store target for instant open
 (function() {
+  if (window.__legalPage) return;
   var hash = window.location.hash;
   if (hash && hash.startsWith('#@')) {
     window.__vaultTarget = hash.slice(2).trim();
@@ -62,6 +191,7 @@
 <script>
 // Pre-paint: add .active to the correct screen before first paint — zero flash, zero conflict.
 (function() {
+  if (window.__legalPage) return;
   try {
     var s = sessionStorage.getItem('po_screen') || 'search';
     var safe = {search:1,vault:1,creator:1,'content-manager':1,'creator-login':1,player:1,payment:1};
@@ -2162,8 +2292,10 @@ function _preInitStripe() {
     stripeCardEl.mount('#stripe-card-element');
   }
 }
-if (window.Stripe) { _preInitStripe(); }
-else { window.addEventListener('load', _preInitStripe, { once: true }); }
+if (!window.__legalPage) {
+  if (window.Stripe) { _preInitStripe(); }
+  else { window.addEventListener('load', _preInitStripe, { once: true }); }
+}
 
 function openPayment(drop) {
   _paymentCancelled = false; // reset on each new payment attempt
