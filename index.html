@@ -49,137 +49,8 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"></noscript>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
-// Legal page router — intercept /terms /privacy /refunds before app boots
-(function() {
-  var path = window.location.pathname.replace(/\/$/, '');
-  var pages = {
-    '/terms': {
-      title: 'Terms of Service — PlayOnce',
-      heading: 'Terms of Service',
-      updated: 'Last updated: April 2026',
-      body: `
-        <h2>1. Acceptance</h2>
-        <p>By using PlayOnce ("the Platform") you agree to these Terms. If you do not agree, do not use the Platform.</p>
-
-        <h2>2. What PlayOnce Does</h2>
-        <p>PlayOnce is a digital content platform that allows creators to sell time-limited exclusive content to fans. Fans pay a one-time fee to unlock content for a 72-hour window. After 72 hours the content expires and is no longer accessible.</p>
-
-        <h2>3. Creator Accounts</h2>
-        <p>Creators must be at least 18 years old. Creators are responsible for ensuring they own all rights to content they upload. PlayOnce takes a 20% platform fee on all transactions. Payouts are processed via Stripe Connect after a 7-day holding period.</p>
-
-        <h2>4. Viewer Purchases</h2>
-        <p>All purchases are final. When you unlock a drop you are purchasing a 72-hour digital license to view that content. Once the 72-hour window expires your access ends. See our Refund Policy for exceptions.</p>
-
-        <h2>5. Prohibited Content</h2>
-        <p>The following content is strictly prohibited on PlayOnce: adult or sexually explicit material, content depicting minors, content that promotes violence or hate, content that infringes third-party intellectual property, and any content that violates applicable law.</p>
-
-        <h2>6. Intellectual Property</h2>
-        <p>Creators retain full ownership of their content. By uploading content to PlayOnce, creators grant PlayOnce a limited license to host and deliver that content to paying viewers.</p>
-
-        <h2>7. Limitation of Liability</h2>
-        <p>PlayOnce is provided "as is." We are not liable for any indirect, incidental, or consequential damages arising from your use of the Platform. Our total liability is limited to the amount you paid us in the 30 days prior to the claim.</p>
-
-        <h2>8. Termination</h2>
-        <p>We may suspend or terminate accounts that violate these Terms at any time without notice. Creators whose accounts are terminated forfeit any pending payouts if termination is due to policy violations.</p>
-
-        <h2>9. Changes to Terms</h2>
-        <p>We may update these Terms from time to time. Continued use of the Platform after changes are posted constitutes acceptance of the updated Terms.</p>
-
-        <h2>10. Contact</h2>
-        <p>For questions about these Terms contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
-      `
-    },
-    '/privacy': {
-      title: 'Privacy Policy — PlayOnce',
-      heading: 'Privacy Policy',
-      updated: 'Last updated: April 2026',
-      body: `
-        <h2>1. Information We Collect</h2>
-        <p>We collect information you provide when creating an account (email address, username), payment information processed by Stripe (we do not store card details), content you upload as a creator, and usage data such as which drops you view.</p>
-
-        <h2>2. How We Use Your Information</h2>
-        <p>We use your information to operate the Platform, process payments, send transactional emails (purchase confirmations, payout notifications), and improve our service. We do not sell your personal data to third parties.</p>
-
-        <h2>3. Payment Data</h2>
-        <p>All payment processing is handled by Stripe and Paddle. PlayOnce does not store credit card numbers or bank account details. Please review Stripe's and Paddle's privacy policies for how they handle payment data.</p>
-
-        <h2>4. Data Sharing</h2>
-        <p>We share data with: Stripe and Paddle for payment processing, Amazon Web Services for content hosting and delivery, and law enforcement when required by law. We do not share your data with advertisers.</p>
-
-        <h2>5. Data Retention</h2>
-        <p>We retain your account data for as long as your account is active. Expired drop content is deleted from our servers after 72 hours. You may request deletion of your account and associated data at any time.</p>
-
-        <h2>6. Cookies</h2>
-        <p>We use essential cookies to keep you logged in and remember your session. We do not use advertising or tracking cookies.</p>
-
-        <h2>7. Your Rights</h2>
-        <p>You have the right to access, correct, or delete your personal data. To exercise these rights contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
-
-        <h2>8. Contact</h2>
-        <p>For privacy questions contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
-      `
-    },
-    '/refunds': {
-      title: 'Refund Policy — PlayOnce',
-      heading: 'Refund Policy',
-      updated: 'Last updated: April 2026',
-      body: `
-        <h2>Our Policy</h2>
-        <p>All purchases on PlayOnce are final. When you pay to unlock a drop you are purchasing immediate access to digital content. Because access is granted instantly, we generally do not offer refunds.</p>
-
-        <h2>Exceptions</h2>
-        <p>We will issue a full refund in the following circumstances:</p>
-        <ul>
-          <li>The content you purchased was unavailable or failed to load due to a technical error on our end</li>
-          <li>You were charged more than once for the same drop</li>
-          <li>The content you received was materially different from what was described</li>
-        </ul>
-
-        <h2>How to Request a Refund</h2>
-        <p>To request a refund, contact us within 48 hours of your purchase at <a href="mailto:support@playonce.app">support@playonce.app</a> with your purchase details and the reason for your request. We will respond within 2 business days.</p>
-
-        <h2>Processing</h2>
-        <p>Approved refunds are returned to your original payment method. Processing typically takes 5–10 business days depending on your bank or card provider.</p>
-
-        <h2>Contact</h2>
-        <p>For refund questions contact us at <a href="mailto:support@playonce.app">support@playonce.app</a>.</p>
-      `
-    }
-  };
-
-  var page = pages[path];
-  if (!page) return;
-
-  // Render legal page and stop app from loading
-  document.addEventListener('DOMContentLoaded', function() {
-    document.title = page.title;
-    document.body.innerHTML = '';
-    document.body.style.cssText = 'background:#000;color:#fff;font-family:"DM Sans",sans-serif;min-height:100vh;padding:0;margin:0';
-    document.body.innerHTML =
-      '<div style="max-width:720px;margin:0 auto;padding:60px 24px 100px">' +
-        '<a href="/" style="display:inline-flex;align-items:center;gap:6px;color:#555;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.06em;margin-bottom:48px">← PLAYONCE</a>' +
-        '<h1 style="font-size:28px;font-weight:800;margin-bottom:8px;letter-spacing:-.02em">' + page.heading + '</h1>' +
-        '<p style="color:#444;font-size:13px;margin-bottom:48px">' + page.updated + '</p>' +
-        '<div id="legal-body">' + page.body + '</div>' +
-      '</div>' +
-      '<style>' +
-        '#legal-body h2{font-size:15px;font-weight:700;color:#fff;margin:36px 0 10px;letter-spacing:.02em}' +
-        '#legal-body p{font-size:14px;line-height:1.75;color:#888;margin-bottom:16px}' +
-        '#legal-body ul{margin:0 0 16px 20px;padding:0}' +
-        '#legal-body li{font-size:14px;line-height:1.75;color:#888;margin-bottom:6px}' +
-        '#legal-body a{color:#00FF66;text-decoration:none}' +
-        '#legal-body a:hover{text-decoration:underline}' +
-      '</style>';
-  });
-
-  // Block all other scripts from running
-  window.__legalPage = true;
-})();
-</script>
-<script>
 // Pre-boot: detect vault link before app loads — store target for instant open
 (function() {
-  if (window.__legalPage) return;
   var hash = window.location.hash;
   if (hash && hash.startsWith('#@')) {
     window.__vaultTarget = hash.slice(2).trim();
@@ -191,7 +62,6 @@
 <script>
 // Pre-paint: add .active to the correct screen before first paint — zero flash, zero conflict.
 (function() {
-  if (window.__legalPage) return;
   try {
     var s = sessionStorage.getItem('po_screen') || 'search';
     var safe = {search:1,vault:1,creator:1,'content-manager':1,'creator-login':1,player:1,payment:1};
@@ -1479,7 +1349,7 @@
       <div class="dash-actions">
         <button class="btn-sec" id="btn-open-content-manager" onclick="renderContentManager();show('content-manager')">Content Manager</button>
         <button class="btn-sec" onclick="openAnalytics()">Analytics</button>
-        <button class="btn-sec" id="btn-withdraw" onclick="openWithdrawModal()">Withdraw</button>
+        <button class="btn-sec" id="btn-pending" onclick="openPendingModal()">Pending <span id="btn-pending-badge" style="display:none;background:var(--amber);color:#000;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:4px;vertical-align:middle">0</span></button>
         <button class="btn-sec" id="btn-share-profile" onclick="shareCreatorProfile()" style="grid-column:1/-1;border-color:var(--green);color:var(--green)">
           ↗ Share My PlayOnce Link
         </button>
@@ -1623,28 +1493,40 @@
   <button class="btn-fill" id="btn-submit-refund">SUBMIT REFUND REQUEST</button>
 </div></div></div>
 <div class="modal-overlay" id="modal-creator-refunds"><div class="modal-box"><div class="modal-head"><div class="modal-head-title">Refund Requests</div><button class="modal-close" onclick="closeModal('modal-creator-refunds')">✕</button></div><div class="modal-body" style="padding:0"><div class="refund-req-list" id="refund-req-list" style="padding:0 22px"></div></div></div></div>
-<div class="modal-overlay" id="modal-withdraw"><div class="modal-box"><div class="modal-head"><div class="modal-head-title">Withdraw</div><button class="modal-close" onclick="closeModal('modal-withdraw')">✕</button></div><div class="modal-body">
+<div class="modal-overlay" id="modal-pending"><div class="modal-box"><div class="modal-head"><div class="modal-head-title">Pending Payments</div><button class="modal-close" onclick="closeModal('modal-pending')">✕</button></div><div class="modal-body">
 
-  <!-- Available now -->
-  <div id="withdraw-available-section">
-    <div style="background:#0a0a0a;border:1px solid var(--gray-border);padding:20px;text-align:center;margin-bottom:14px">
-      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:var(--gray);margin-bottom:8px">AVAILABLE TO WITHDRAW</div>
-      <div id="withdraw-payout-display" style="font-family:'DM Sans',sans-serif;font-size:44px;font-weight:800;letter-spacing:-0.02em;color:var(--green);line-height:1">$0.00</div>
-      <div style="font-size:12px;color:#444;margin-top:6px">80% of gross · after platform fee</div>
+  <!-- Summary row -->
+  <div style="display:flex;gap:2px;margin-bottom:14px">
+    <div style="flex:1;background:#0a0a0a;border:1px solid var(--gray-border);padding:16px;text-align:center">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--gray);margin-bottom:6px">AVAILABLE</div>
+      <div id="pm-available" style="font-size:22px;font-weight:800;color:var(--green);font-family:'DM Sans',sans-serif">$0.00</div>
+      <div style="font-size:10px;color:#333;margin-top:4px">cleared · auto-paid</div>
     </div>
-    <button class="btn-fill" id="btn-confirm-withdraw" style="padding:16px;font-size:14px;font-weight:700">Transfer to Payout Account</button>
+    <div style="flex:1;background:#0a0a0a;border:1px solid var(--gray-border);padding:16px;text-align:center">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--gray);margin-bottom:6px">PENDING</div>
+      <div id="pm-pending" style="font-size:22px;font-weight:800;color:var(--amber);font-family:'DM Sans',sans-serif">$0.00</div>
+      <div style="font-size:10px;color:#333;margin-top:4px">in hold period</div>
+    </div>
   </div>
 
-  <!-- Pending (held) funds breakdown -->
-  <div id="withdraw-pending-section" style="margin-top:14px">
-    <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--gray);margin-bottom:8px">PENDING — HELD UNTIL DAY 4</div>
-    <div id="withdraw-pending-list" style="display:flex;flex-direction:column;gap:6px"></div>
+  <!-- Pending breakdown by unlock date -->
+  <div id="pm-pending-section" style="display:none">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--gray);margin-bottom:8px">UNLOCKING SOON</div>
+    <div id="pm-pending-list" style="display:flex;flex-direction:column;gap:4px"></div>
   </div>
 
-  <div style="font-size:12px;color:#333;line-height:1.6;margin-top:14px;padding:12px;border:1px solid #111">
-    Earnings are held for 3 days after a drop expires to cover any refunds or disputes. They unlock automatically on day 4.
+  <!-- Empty state -->
+  <div id="pm-empty" style="display:none;text-align:center;padding:24px 0">
+    <div style="font-size:28px;margin-bottom:8px">💸</div>
+    <div style="font-size:13px;color:var(--gray)">No pending payments right now</div>
+    <div style="font-size:12px;color:#333;margin-top:4px">Earnings appear here as fans unlock your drops</div>
   </div>
-</div></div></div>
+
+  <!-- How it works -->
+  <div style="font-size:12px;color:#333;line-height:1.7;margin-top:14px;padding:12px;border:1px solid #111">
+    Earnings are held for <span style="color:#555">3 days</span> after a drop expires to cover disputes. Once cleared, Stripe automatically sends your 80% to your connected bank — no action needed.
+  </div>
+
 </div></div></div>
 <div class="modal-overlay" id="modal-verify"><div class="modal-box"><div class="modal-head"><div class="modal-head-title">Get Verified</div><button class="modal-close" onclick="closeModal('modal-verify')">✕</button></div><div class="modal-body">
 
@@ -1742,7 +1624,7 @@ const SUPPORT_EMAIL = 'support@playonce.app';
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 // IMPORTANT: REPLACE THIS KEY IN PRODUCTION
-const STRIPE_PK = 'pk_live_51TIbboApaxUbmPUS_REPLACE_WITH_YOUR_FULL_LIVE_KEY';
+const STRIPE_PK = 'pk_live_51TIbbTAFeIMJfcgbls8PeU5bnut0mHNIwarpW6KNkGmdGc5CtdxVHYhpUGVOQNQJFqqJ1HJKDMpM0NRYa9H1mGCi00spf9DBXE';
 
 let registeredCreators = []; const _avatarPreloadCache = new Set(); let currentCreator = null; let authMode = 'login'; let currentDrop = null; let currentVaultCreator = null;
 let currentRefundTarget = null; let selectedReason = null; let playerTimer = null; let tokenInterval = null; let tokenSeconds = 0;
@@ -2292,10 +2174,8 @@ function _preInitStripe() {
     stripeCardEl.mount('#stripe-card-element');
   }
 }
-if (!window.__legalPage) {
-  if (window.Stripe) { _preInitStripe(); }
-  else { window.addEventListener('load', _preInitStripe, { once: true }); }
-}
+if (window.Stripe) { _preInitStripe(); }
+else { window.addEventListener('load', _preInitStripe, { once: true }); }
 
 function openPayment(drop) {
   _paymentCancelled = false; // reset on each new payment attempt
@@ -3582,6 +3462,8 @@ function updateEarnings(){
   }
   // Trigger payout status check
   setTimeout(() => checkStripeConnectStatus(), 0);
+  // Update pending badge
+  _updatePendingBadge();
   const bioInput = document.getElementById('creator-bio-input'); if (bioInput) bioInput.value = currentCreator.bio || '';
 }
 
@@ -4753,76 +4635,70 @@ async function _onUploadSuccess(fileUrl, dropId, _user, _pass, thumbFile, captur
 // ════════════════════════════════════════════
 // WITHDRAW & VERIFICATION
 
-function openWithdrawModal() {
+function openPendingModal() {
   if (!currentCreator) return;
   const { available, pending, pendingItems } = _calcPayout();
 
-  const dispEl = document.getElementById('withdraw-payout-display');
-  const btnW   = document.getElementById('btn-confirm-withdraw');
-  const avSec  = document.getElementById('withdraw-available-section');
-  const pndSec = document.getElementById('withdraw-pending-section');
-  const pndList= document.getElementById('withdraw-pending-list');
+  // Summary
+  const avEl = document.getElementById('pm-available');
+  const pnEl = document.getElementById('pm-pending');
+  if (avEl) avEl.textContent = '$' + available.toFixed(2);
+  if (pnEl) pnEl.textContent = '$' + pending.toFixed(2);
 
-  // Available section
-  if (dispEl) dispEl.textContent = '$' + available.toFixed(2);
-  if (btnW) { btnW.disabled = available <= 0; btnW.textContent = available > 0 ? 'Transfer to Payout Account' : 'Nothing to withdraw yet'; }
+  // Pending breakdown
+  const pndSec  = document.getElementById('pm-pending-section');
+  const pndList = document.getElementById('pm-pending-list');
+  const emptyEl = document.getElementById('pm-empty');
 
-  // Pending section
-  if (pndList) {
-    pndList.innerHTML = '';
-    if (pendingItems.length === 0 && pending === 0) {
-      pndSec.style.display = 'none';
-    } else {
-      pndSec.style.display = 'block';
+  if (pendingItems.length === 0 && pending === 0 && available === 0) {
+    if (pndSec)  pndSec.style.display  = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+  } else {
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (pendingItems.length > 0) {
+      if (pndSec) pndSec.style.display = 'block';
+      pndList.innerHTML = '';
       // Group by daysLeft
       const grouped = {};
       pendingItems.forEach(p => {
         const k = p.daysLeft;
         if (!grouped[k]) grouped[k] = { payout: 0, count: 0 };
-        grouped[k].payout += p.payout; grouped[k].count++;
+        grouped[k].payout += p.payout;
+        grouped[k].count++;
       });
-      Object.entries(grouped).sort((a,b)=>+a[0]-+b[0]).forEach(([days, g]) => {
+      Object.entries(grouped).sort((a,b) => +a[0] - +b[0]).forEach(([days, g]) => {
         const row = document.createElement('div');
-        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid #1a1a1a;background:#080808;font-size:13px';
-        row.innerHTML = `<span style="color:var(--gray)">Unlocks in ${days} day${days==='1'?'':'s'}</span><span style="color:var(--amber);font-weight:700">$${g.payout.toFixed(2)}</span>`;
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border:1px solid #1a1a1a;background:#080808';
+        row.innerHTML =
+          `<div>
+            <div style="font-size:13px;font-weight:600;color:var(--white)">Unlocks in ${days} day${days==='1'?'':'s'}</div>
+            <div style="font-size:11px;color:#444;margin-top:2px">${g.count} sale${g.count===1?'':'s'}</div>
+          </div>
+          <div style="font-size:16px;font-weight:800;color:var(--amber);font-family:'DM Sans',sans-serif">$${g.payout.toFixed(2)}</div>`;
         pndList.appendChild(row);
       });
-      // Total pending
-      if (pending > 0) {
-        const tot = document.createElement('div');
-        tot.style.cssText = 'display:flex;justify-content:space-between;padding:8px 14px;font-size:12px';
-        tot.innerHTML = `<span style="color:#333">Total pending</span><span style="color:#555">$${pending.toFixed(2)}</span>`;
-        pndList.appendChild(tot);
-      }
+    } else {
+      if (pndSec) pndSec.style.display = 'none';
     }
   }
 
-  openModal('modal-withdraw');
+  openModal('modal-pending');
 }
 
-document.getElementById('btn-confirm-withdraw').addEventListener('click', async () => {
-  if (!currentCreator) return;
-  const { available } = _calcPayout();
-  if (available <= 0) { showToast('No funds available to withdraw', 'error'); return; }
-  const btn = document.getElementById('btn-confirm-withdraw');
-  btn.disabled = true; btn.textContent = 'Processing...';
+// Update pending badge count on dashboard
+function _updatePendingBadge() {
   try {
-    const res = await apiPost('/payment/withdraw', { username: currentCreator.username, amount: available });
-    if (res.error) throw new Error(res.error);
-    // Remove unlocked sales from local record
-    const now = Date.now();
-    currentCreator.sales = (currentCreator.sales || []).filter(s => (s.earnedAt || 0) + PAYOUT_HOLD_MS > now);
-    currentCreator.grossRevenue = 0;
-    _cacheCreator(currentCreator);
-    await saveCreators();
-    updateEarnings();
-    closeModal('modal-withdraw');
-    showToast('$' + available.toFixed(2) + ' transferred to your payout account');
-  } catch(e) {
-    showToast(e.message || 'Transfer failed', 'error');
-    btn.disabled = false; btn.textContent = 'Transfer to Payout Account';
-  }
-});
+    const badge = document.getElementById('btn-pending-badge');
+    if (!badge || !currentCreator) return;
+    const { pendingItems } = _calcPayout();
+    if (pendingItems.length > 0) {
+      badge.textContent = pendingItems.length;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch(e) {}
+}
 
 let _verifyEmail = '';
 let _verifyCardEl = null;
