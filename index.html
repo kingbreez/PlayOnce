@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
-<title>PlayOnce™ — Exclusive drops. Watch once. Gone in 3 days.</title>
-<meta name="description" content="PlayOnce is where creators premiere exclusive content. Fans pay once to unlock it. Gone in 3 days.">
+<title>PlayOnce™ — The premiere platform for artists, filmmakers, and creators.</title>
+<meta name="description" content="PlayOnce is where artists, filmmakers, brands, studios, and content creators premiere exclusive music, film, and original content. Safe-for-work.">
 
 <!-- Favicon — hosted file so Google can index it -->
 <link rel="icon" type="image/svg+xml" href="/icon-192.svg">
@@ -22,8 +22,8 @@
 
 <!-- Open Graph — Google, Facebook, WhatsApp preview -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="PlayOnce™ — Exclusive drops. Watch once.">
-<meta property="og:description" content="Where creators premiere exclusive content. Fans pay once to unlock. Gone in 3 days.">
+<meta property="og:title" content="PlayOnce™ — The premiere platform for artists & creators.">
+<meta property="og:description" content="Where artists, filmmakers, brands, and creators premiere exclusive music, film, and original content.">
 <meta property="og:url" content="https://playonce.app">
 <meta property="og:image" content="https://playonce.app/icon-512.svg">
 <meta property="og:image:width" content="512">
@@ -32,8 +32,8 @@
 
 <!-- Twitter/X card -->
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="PlayOnce™ — Exclusive drops. Watch once.">
-<meta name="twitter:description" content="Where creators premiere exclusive content. Fans pay once to unlock. Gone in 3 days.">
+<meta name="twitter:title" content="PlayOnce™ — The premiere platform for artists & creators.">
+<meta name="twitter:description" content="Where artists, filmmakers, and creators premiere exclusive music, film, and content. Fans unlock for a 3-day window.">
 <meta name="twitter:image" content="https://playonce.app/icon-512.svg">
 
 <!-- Preconnect to critical domains for instant load -->
@@ -1053,7 +1053,8 @@
       <button onclick="event.stopPropagation();document.getElementById('new-drop-banner').style.display='none'" style="background:none;border:none;color:#444;font-size:16px;cursor:pointer;padding:0;line-height:1">✕</button>
     </div>
   </div>
-  <div class="logo"><span class="logo-play">Play</span><span class="logo-once">Once</span><span style="font-size:0.35em;vertical-align:super;color:rgba(255,255,255,0.4);letter-spacing:0">™</span><span class="cursor"></span></div>
+  <div class="logo" style="margin-bottom:14px"><span class="logo-play">Play</span><span class="logo-once">Once</span><span style="font-size:0.35em;vertical-align:super;color:rgba(255,255,255,0.4);letter-spacing:0">™</span><span class="cursor"></span></div>
+  <div class="hero-tagline" style="font-size:13px;color:#666;text-align:center;letter-spacing:0.04em;line-height:1.55;margin-bottom:32px;max-width:340px;padding:0 16px">The premiere platform for artists, filmmakers, brands, and creators.</div>
   <div class="search-wrap">
     <div class="search-row">
       <div class="input-row" id="input-row">
@@ -1106,6 +1107,11 @@
     <div class="pay-title" id="payment-title">—</div>
     <div class="pay-price" id="payment-price">PRICE: $—</div>
 
+    <div style="background:#1a1100;border:1px solid #FFB800;color:#FFB800;padding:11px 14px;margin:14px 0 18px;font-size:12px;line-height:1.55;letter-spacing:0.02em">
+      <strong style="display:block;font-size:11px;letter-spacing:0.18em;margin-bottom:4px">⚠ SINGLE PLAY ONLY</strong>
+      You will be able to watch this drop <strong>one time</strong>. To watch again, you'll need to repurchase. All sales are final.
+    </div>
+
     <div id="pay-card-section">
       <div id="stripe-card-element"></div>
       <div id="stripe-card-errors"></div>
@@ -1117,7 +1123,7 @@
       <div id="pay-processing-label" style="font-size:11px;letter-spacing:0.25em;color:var(--gray)">PROCESSING...</div>
     </div>
 
-    <div class="pay-secure">SECURE · STRIPE · ONE-TIME ACCESS</div>
+    <div class="pay-secure">SECURE · STRIPE · SINGLE-PLAY UNLOCK</div>
     <button class="btn-ghost" id="btn-cancel" style="align-self:center;margin-top:4px">cancel</button>
   </div>
 </div>
@@ -1274,7 +1280,7 @@
       <!-- Row 2: bio full width -->
       <div class="creator-topbar-bio">
         <input type="text" id="creator-bio-input" maxlength="120"
-          placeholder="Add a bio — shown on your vault"
+          placeholder="Add a bio — shown on your channel"
           style="font-size:13px;color:var(--gray);background:none;border:none;outline:none;font-family:var(--font);width:100%;"
           onblur="saveBio()" onkeydown="if(event.key==='Enter'){this.blur()}">
       </div>
@@ -1529,7 +1535,7 @@
       <div style="font-size:13px;color:var(--gray)">/month · cancel anytime</div>
     </div>
     <div style="font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:20px">
-      Verified badge <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="display:inline-block;vertical-align:middle"><circle cx="10" cy="10" r="10" fill="#00FF66"/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> appears next to your name on your vault and in search.
+      Verified badge <svg width="13" height="13" viewBox="0 0 20 20" fill="none" style="display:inline-block;vertical-align:middle"><circle cx="10" cy="10" r="10" fill="#00FF66"/><path d="M5.5 10.5L8.5 13.5L14.5 7" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg> appears next to your name on your channel and in search.
     </div>
     <div class="field" style="margin-bottom:16px">
       <label>CARD DETAILS</label>
@@ -2785,7 +2791,8 @@ function renderHistoryList() {
     } else if (entry.refundStatus === 'pending') {
       actionBtn = `<div class="hi-actions"><button class="btn-refund resolved" disabled>Refund request submitted</button></div>`;
     } else if (canRefund) {
-      actionBtn = `<div class="hi-actions"><button class="btn-refund" onclick="closeModal('modal-history');openSettings();setTimeout(()=>openSettingsPage('report','refund'),150)">Request a refund</button></div>`;
+      // No-refund policy — no action button shown. Viewers contact support for genuine technical issues.
+      actionBtn = '';
     }
 
     el.innerHTML = `
@@ -2870,7 +2877,7 @@ document.getElementById('btn-submit-refund').addEventListener('click', async () 
   // Resolve creatorUsername — try all possible sources
   const refundCreator = currentRefundTarget.creatorUsername || currentVaultCreator || null;
   if (!refundCreator) {
-    showToast('Could not identify creator — try reopening the vault first', 'error');
+    showToast('Could not identify creator — try reopening the channel first', 'error');
     btn.disabled = false; btn.textContent = 'Submit Request';
     return;
   }
@@ -3738,12 +3745,12 @@ async function openSettingsPage(page, prefill) {
 </div>
 <div style="margin-bottom:24px">
   <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px">Refund Policy</div>
-  <p style="margin-bottom:8px">Viewers may request a refund within 25 minutes of purchase via Settings → Report a Problem → Refund Request. All refund requests are reviewed by PlayOnce before any money moves.</p>
-  <p>PlayOnce reserves the right to approve or deny refund requests. Fraudulent refund claims may result in account suspension.</p>
+  <p style="margin-bottom:8px">All sales are final. PlayOnce does not offer refunds. Each unlock entitles you to a single playback of the drop. To watch again, a new purchase is required.</p>
+  <p>For genuine technical issues that prevented you from watching the content (such as platform encoding errors), email <span style="color:var(--white)">${SUPPORT_EMAIL}</span>. PlayOnce fully cooperates with Stripe's standard chargeback resolution process.</p>
 </div>
 <div style="margin-bottom:24px">
   <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px">Drop Expiry Policy</div>
-  <p>Drops are available for 3 days from the time of upload or scheduled publish. After 3 days the drop vanishes automatically from the vault. Creators cannot extend this window — it is a core feature of PlayOnce. Creator earnings from expired drops are held for 3 days then released to their payout account.</p>
+  <p>Drops are available for 3 days from the time of upload or scheduled publish. After 3 days the drop vanishes automatically from the platform. Creators cannot extend this window — it is a core feature of PlayOnce. Creator earnings from expired drops are held for 3 days then released to their payout account.</p>
 </div>
 <div>
   <div style="font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px">Contact</div>
@@ -3804,7 +3811,7 @@ async function openSettingsPage(page, prefill) {
     // Poll first then render with fresh data
     const withRefunds = purchaseHistory.filter(p => p.refundStatus);
     if (!withRefunds.length) {
-      bodyEl.innerHTML = '<div style="text-align:center;padding:32px 0;color:#444;font-size:13px">No requests yet.<br><span style="font-size:12px;color:#333">Use Report a Problem to submit a refund request.</span></div>';
+      bodyEl.innerHTML = '<div style="text-align:center;padding:32px 0;color:#444;font-size:13px">No requests.<br><span style="font-size:12px;color:#333">All sales are final — PlayOnce does not offer refunds.</span></div>';
     } else {
       const statusColors = { platform_review: 'var(--amber)', pending: 'var(--amber)', approved: 'var(--green)', denied: 'var(--red)', proof_required: 'var(--amber)' };
       const statusLabels = { platform_review: 'Under review', pending: 'Under review', approved: '✓ Refund approved', denied: 'Not approved', proof_required: 'Email proof required' };
@@ -3966,7 +3973,7 @@ async function submitGeneralReport(type) {
 function shareCreatorProfile() {
   if (!currentCreator) return;
   const url = 'https://playonce.app/#@' + currentCreator.username;
-  const text = 'Watch my exclusive drops on PlayOnce — ' + url;
+  const text = 'Catch my premiere on PlayOnce — ' + url;
 
   // Use native share on mobile if available
   if (navigator.share) {
